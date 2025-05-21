@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>웹훅 데이터 전송</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 8px; }
+        button { padding: 10px 15px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Make.com 웹훅 데이터 전송</h1>
+        <form id="webhookForm">
+            <div class="form-group">
+                <label for="webhookUrl">웹훅 URL:</label>
+                <input type="text" id="webhookUrl" placeholder="https://hook.us1.make.com/your-webhook-id">
+            </div>
+            <div class="form-group">
+                <label for="data">전송할 데이터 (JSON):</label>
+                <textarea id="data" rows="6" placeholder='{"key1": "value1", "key2": "value2"}'></textarea>
+            </div>
+            <button type="button" onclick="sendWebhook()">전송</button>
+        </form>
+        <div id="result" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        function sendWebhook() {
+            const url = document.getElementById('webhookUrl').value;
+            const data = document.getElementById('data').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const jsonData = JSON.parse(data);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: data
+                })
+                .then(response => {
+                    resultDiv.innerHTML = `<p>상태: ${response.status} ${response.ok ? '성공' : '실패'}</p>`;
+                    return response.text();
+                })
+                .then(text => {
+                    if (text) {
+                        resultDiv.innerHTML += `<p>응답: ${text}</p>`;
+                    }
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = `<p>오류: ${error.message}</p>`;
+                });
+            } catch (e) {
+                resultDiv.innerHTML = `<p>JSON 형식 오류: ${e.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
