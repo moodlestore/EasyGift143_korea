@@ -159,6 +159,10 @@
             padding: 15px;
             border-radius: 8px;
             min-height: 50px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            background: #f8f9fa;
         }
         .success { 
             background: #d4edda; 
@@ -652,9 +656,12 @@
                     if (text) {
                         try {
                             responseData = JSON.parse(text);
-                            message += `\n응답 내용: ${text}`;
                             
-                            // Make.com 작업 완료 처리
+                            // 정돈된 응답 메시지 생성
+                            const formattedResponse = formatResponseMessage(responseData);
+                            message += `\n${formattedResponse}`;
+                            
+                            // Make.com 작업 완료 처리 (알림은 별도로)
                             if (responseData.status === 'success') {
                                 handleMakeComSuccess(responseData);
                             } else if (responseData.status === 'error') {
@@ -677,7 +684,8 @@
                         response: responseData
                     });
                     
-                    showResult(message, success ? 'success' : 'error');
+                    // 로그 스타일로 누적 표시
+                    appendToResultLog(message, success ? 'success' : 'error');
                 });
             })
             .catch(error => {
@@ -702,6 +710,74 @@
             const resultDiv = document.getElementById('result');
             resultDiv.className = type;
             resultDiv.innerHTML = `<div>${message.replace(/\n/g, '<br>')}</div>`;
+        }
+
+        function formatResponseMessage(responseData) {
+            if (!responseData) return '';
+            
+            let formatted = '';
+            
+            // 상태 표시
+            if (responseData.status) {
+                const statusIcon = responseData.status === 'success' ? '✅' : responseData.status === 'error' ? '❌' : 'ℹ️';
+                formatted += `${statusIcon} 상태: ${responseData.status}\n`;
+            }
+            
+            // 메시지 표시
+            if (responseData.message) {
+                formatted += `📝 메시지: ${responseData.message}\n`;
+            }
+            
+            // 에러 상세 정보
+            if (responseData.error_details) {
+                formatted += `🔍 상세: ${responseData.error_details}\n`;
+            }
+            
+            // 성공 시 추가 정보
+            if (responseData.status === 'success') {
+                if (responseData.uploaded_files && responseData.uploaded_files.length > 0) {
+                    formatted += `📁 업로드된 파일: ${responseData.uploaded_files.join(', ')}\n`;
+                }
+                if (responseData.processed_items) {
+                    formatted += `🔢 처리된 항목: ${responseData.processed_items}개\n`;
+                }
+            }
+            
+            return formatted.trim();
+        }
+
+        function appendToResultLog(message, type) {
+            const resultDiv = document.getElementById('result');
+            const timestamp = new Date().toLocaleTimeString('ko-KR');
+            
+            // 새로운 로그 엔트리 생성
+            const logEntry = document.createElement('div');
+            logEntry.style.cssText = `
+                margin-bottom: 15px;
+                padding: 12px;
+                border-radius: 6px;
+                border-left: 4px solid ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+                background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+                line-height: 1.4;
+            `;
+            
+            logEntry.innerHTML = `
+                <div style="color: #666; font-size: 11px; margin-bottom: 5px;">[${timestamp}]</div>
+                <div>${message.replace(/\n/g, '<br>')}</div>
+            `;
+            
+            // 결과 영역에 추가 (누적)
+            if (resultDiv.children.length === 0) {
+                resultDiv.className = '';
+                resultDiv.innerHTML = '';
+            }
+            
+            resultDiv.appendChild(logEntry);
+            
+            // 스크롤을 최신 로그로 이동
+            resultDiv.scrollTop = resultDiv.scrollHeight;
         }
 
         function saveToHistory(record) {
