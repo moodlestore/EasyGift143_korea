@@ -1,62 +1,735 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>웹훅 데이터 전송</title>
+    <title>EasyGift143 제품 등록 도우미</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input, textarea { width: 100%; padding: 8px; }
-        button { padding: 10px 15px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { 
+            text-align: center; 
+            color: #333; 
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+        .tab:hover {
+            color: #667eea;
+            background: #f8f9ff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            background: #f8f9ff;
+        }
+        .section h2 {
+            margin: 0 0 20px 0;
+            color: #667eea;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600;
+            color: #333;
+        }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .url-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+        .url-input-group input {
+            flex: 1;
+        }
+        button { 
+            padding: 12px 24px; 
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white; 
+            border: none; 
+            border-radius: 8px;
+            cursor: pointer; 
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: white;
+            margin-bottom: 15px;
+        }
+        .file-list {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .remove-file {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin: 0;
+        }
+        #result { 
+            margin-top: 20px; 
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 50px;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+        .info { 
+            background: #d1ecf1; 
+            color: #0c5460; 
+            border: 1px solid #bee5eb; 
+        }
+        .preview-area {
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .saved-indicator {
+            color: #28a745;
+            font-size: 12px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Make.com 웹훅 데이터 전송</h1>
-        <form id="webhookForm">
-            <div class="form-group">
-                <label for="webhookUrl">웹훅 URL:</label>
-                <input type="text" id="webhookUrl" placeholder="https://hook.us1.make.com/your-webhook-id">
+        <h1>🎁 EasyGift143 제품 등록 도우미</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('main')">메인</button>
+            <button class="tab" onclick="switchTab('history')">전송 기록</button>
+        </div>
+
+        <!-- 메인 탭 -->
+        <div id="main" class="tab-content active">
+            <!-- 1. 웹훅 URL 설정 -->
+            <div class="section">
+                <h2>🔗 웹훅 URL 설정</h2>
+                <div class="form-group">
+                    <label for="webhookUrl">웹훅 URL:</label>
+                    <div class="url-input-group">
+                        <input type="text" id="webhookUrl" placeholder="https://hook.us1.make.com/your-webhook-id">
+                        <button onclick="saveWebhookUrl()">SAVE</button>
+                    </div>
+                    <span id="savedIndicator" class="saved-indicator" style="display: none;">✅ 저장됨</span>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="data">전송할 데이터 (JSON):</label>
-                <textarea id="data" rows="6" placeholder='{"key1": "value1", "key2": "value2"}'></textarea>
+
+            <!-- 2. 데이터 입력 -->
+            <div class="section">
+                <h2>📝 데이터 입력</h2>
+
+                <!-- 개별 텍스트 필드들 -->
+                <div class="form-group">
+                    <label for="productName">제품명:</label>
+                    <input type="text" id="productName" placeholder="예: 애플 에어팟 프로 3세대">
+                </div>
+
+                <div class="form-group">
+                    <label for="productPrice">제품가격:</label>
+                    <input type="text" id="productPrice" placeholder="예: 359,000원">
+                </div>
+
+                <div class="form-group">
+                    <label for="productInfo">제품정보:</label>
+                    <textarea id="productInfo" rows="3" placeholder="제품의 주요 특징과 기능을 설명해주세요"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="customerReview">고객리뷰:</label>
+                    <textarea id="customerReview" rows="10" placeholder="고객들의 후기와 평가를 입력해주세요. 여러 리뷰가 있을 경우 줄바꿈으로 구분하세요.&#10;&#10;예:&#10;음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요.&#10;장시간 착용해도 편안합니다.&#10;배터리 지속시간도 만족스럽습니다."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="affiliateLink">구매링크:</label>
+                    <textarea id="affiliateLink" rows="3" placeholder="구매 링크들을 입력해주세요. 여러 링크가 있을 경우 줄바꿈으로 구분하세요."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="affiliateNotice">대가성문구:</label>
+                    <textarea id="affiliateNotice" rows="2" placeholder="예: 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."></textarea>
+                </div>
+
+                <!-- 포스팅 이미지 첨부 -->
+                <div class="form-group">
+                    <label>포스팅 이미지 (1개):</label>
+                    <div class="file-upload-area">
+                        <input type="file" id="postFileInput" accept="image/*" style="display: none;">
+                        <button onclick="document.getElementById('postFileInput').click()">포스팅 이미지 선택</button>
+                        <p>post.png 파일을 업로드하세요</p>
+                    </div>
+                    <div id="postFileList" class="file-list" style="display: none;"></div>
+                </div>
+
+                <!-- 정보 이미지들 첨부 -->
+                <div class="form-group">
+                    <label>정보 이미지들 (최대 4개):</label>
+                    <div class="file-upload-area">
+                        <input type="file" id="infoFileInput" multiple accept="image/*" style="display: none;">
+                        <button onclick="document.getElementById('infoFileInput').click()">정보 이미지들 선택</button>
+                        <p>info-1.png, info-2.png, info-3.png, info-4.png 파일들을 업로드하세요</p>
+                    </div>
+                    <div id="infoFileList" class="file-list" style="display: none;"></div>
+                </div>
             </div>
-            <button type="button" onclick="sendWebhook()">전송</button>
-        </form>
-        <div id="result" style="margin-top: 20px;"></div>
+
+            <!-- 3. JSON 미리보기 -->
+            <div class="section">
+                <h2>👀 JSON 미리보기</h2>
+                <button onclick="generatePreview()">JSON 생성</button>
+                <button class="secondary" onclick="clearAll()">전체 초기화</button>
+                <div id="jsonPreview" class="preview-area">JSON 생성 버튼을 클릭하세요</div>
+            </div>
+
+            <!-- 4. 전송 -->
+            <div class="section">
+                <h2>🚀 전송</h2>
+                <button onclick="sendWebhook()">웹훅 전송</button>
+                <div id="result"></div>
+            </div>
+        </div>
+
+        <!-- 전송 기록 탭 -->
+        <div id="history" class="tab-content">
+            <div class="section">
+                <h2>📋 전송 기록</h2>
+                <button onclick="displayHistory()">기록 새로고침</button>
+                <button class="secondary" onclick="clearHistory()">기록 삭제</button>
+                <div id="historyList" style="margin-top: 15px;"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        function sendWebhook() {
-            const url = document.getElementById('webhookUrl').value;
-            const data = document.getElementById('data').value;
-            const resultDiv = document.getElementById('result');
-            
+        // 템플릿 데이터 (먼저 정의)
+        const templates = {
+            textOnly: "[제품명]애플 에어팟 프로 3세대[제품명]\n[제품가격]359,000원[제품가격]\n[제품정보]최신 액티브 노이즈 캔슬링 기술이 적용된 프리미엄 무선 이어폰입니다. 공간 음향 기능과 적응형 EQ로 개인 맞춤형 청취 경험을 제공합니다.[제품정보]\n[고객리뷰]음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요. 장시간 착용해도 편안합니다.[고객리뷰]\n[구매링크]https://partners.coupang.com/products/12345[구매링크]\n[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.[대가성문구]",
+            postImage: "포스팅 이미지 업로드 테스트",
+            infoImages: "정보 이미지들 업로드 테스트",
+            complete: "[제품명]삼성 갤럭시 버즈3 프로[제품명]\n[제품가격]299,000원[제품가격]\n[제품정보]360도 오디오 기술과 AI 기반 노이즈 캔슬링을 탑재한 프리미엄 무선 이어폰입니다.[제품정보]\n[고객리뷰]통화 품질이 정말 좋고, 배터리 지속시간도 만족스럽습니다.[고객리뷰]\n[구매링크]https://partners.coupang.com/products/67890[구매링크]\n[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.[대가성문구]",
+            posting: "#포스팅",
+            template: "템플릿"
+        };
+
+        // 저장된 데이터 (templates 정의 후)
+        let postFiles = [];
+        let infoFiles = [];
+        let sendHistory = [];
+
+        // localStorage 안전하게 처리
+        function safeGetLocalStorage(key, defaultValue = '[]') {
             try {
-                const jsonData = JSON.parse(data);
-                
-                fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: data
-                })
-                .then(response => {
-                    resultDiv.innerHTML = `<p>상태: ${response.status} ${response.ok ? '성공' : '실패'}</p>`;
-                    return response.text();
-                })
-                .then(text => {
-                    if (text) {
-                        resultDiv.innerHTML += `<p>응답: ${text}</p>`;
-                    }
-                })
-                .catch(error => {
-                    resultDiv.innerHTML = `<p>오류: ${error.message}</p>`;
-                });
+                return localStorage.getItem(key) || defaultValue;
             } catch (e) {
-                resultDiv.innerHTML = `<p>JSON 형식 오류: ${e.message}</p>`;
+                return defaultValue;
             }
+        }
+
+        function safeSetLocalStorage(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function safeRemoveLocalStorage(key) {
+            try {
+                localStorage.removeItem(key);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // 1일 지난 기록 자동 삭제
+        function cleanupOldHistory() {
+            const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000); // 24시간 전
+            const validHistory = sendHistory.filter(record => {
+                const recordTime = new Date(record.timestamp).getTime();
+                return recordTime > oneDayAgo;
+            });
+            
+            if (validHistory.length !== sendHistory.length) {
+                sendHistory = validHistory;
+                safeSetLocalStorage('webhookHistory', JSON.stringify(sendHistory));
+            }
+        }
+
+        // 초기화
+        try {
+            sendHistory = JSON.parse(safeGetLocalStorage('webhookHistory', '[]'));
+            cleanupOldHistory(); // 페이지 로드 시 오래된 기록 정리
+        } catch (e) {
+            sendHistory = [];
+        }
+
+        // 페이지 로드 시 저장된 URL 로드
+        window.addEventListener('load', function() {
+            const savedUrl = safeGetLocalStorage('webhookUrl', '');
+            if (savedUrl && savedUrl !== '[]') {
+                document.getElementById('webhookUrl').value = savedUrl;
+                showSavedIndicator();
+            }
+            setupFileHandlers();
+        });
+
+        function switchTab(tabName) {
+            // 모든 탭 비활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'history') {
+                cleanupOldHistory(); // 기록 탭 열 때 정리
+                displayHistory();
+            }
+        }
+
+        function saveWebhookUrl() {
+            const url = document.getElementById('webhookUrl').value.trim();
+            if (url) {
+                if (safeSetLocalStorage('webhookUrl', url)) {
+                    showSavedIndicator();
+                    showResult('웹훅 URL이 저장되었습니다.', 'success');
+                } else {
+                    showSavedIndicator(); // 시각적 피드백은 유지
+                    showResult('웹훅 URL이 설정되었습니다. (임시 세션)', 'success');
+                }
+            } else {
+                showResult('웹훅 URL을 입력해주세요.', 'error');
+            }
+        }
+
+        function showSavedIndicator() {
+            const indicator = document.getElementById('savedIndicator');
+            indicator.style.display = 'inline';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+        }
+
+        function setupFileHandlers() {
+            const postFileInput = document.getElementById('postFileInput');
+            const infoFileInput = document.getElementById('infoFileInput');
+
+            postFileInput.addEventListener('change', function(e) {
+                handlePostFiles(e.target.files);
+            });
+
+            infoFileInput.addEventListener('change', function(e) {
+                handleInfoFiles(e.target.files);
+            });
+        }
+
+        function handlePostFiles(files) {
+            // 포스팅 이미지는 1개만
+            if (files.length > 1) {
+                showResult('포스팅 이미지는 1개만 업로드할 수 있습니다.', 'error');
+                return;
+            }
+            postFiles = Array.from(files);
+            updatePostFileList();
+        }
+
+        function handleInfoFiles(files) {
+            // 정보 이미지는 최대 4개
+            if (files.length > 4) {
+                showResult('정보 이미지는 최대 4개까지 업로드할 수 있습니다.', 'error');
+                return;
+            }
+            infoFiles = Array.from(files);
+            updateInfoFileList();
+        }
+
+        function updatePostFileList() {
+            const fileList = document.getElementById('postFileList');
+            if (postFiles.length === 0) {
+                fileList.style.display = 'none';
+                return;
+            }
+
+            fileList.style.display = 'block';
+            fileList.innerHTML = '';
+
+            postFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name} (${formatFileSize(file.size)}) ${file.isSimulated ? '(시뮬레이션)' : ''}</span>
+                    <button class="remove-file" onclick="removePostFile(${index})">삭제</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function updateInfoFileList() {
+            const fileList = document.getElementById('infoFileList');
+            if (infoFiles.length === 0) {
+                fileList.style.display = 'none';
+                return;
+            }
+
+            fileList.style.display = 'block';
+            fileList.innerHTML = '';
+
+            infoFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name} (${formatFileSize(file.size)}) ${file.isSimulated ? '(시뮬레이션)' : ''}</span>
+                    <button class="remove-file" onclick="removeInfoFile(${index})">삭제</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removePostFile(index) {
+            postFiles.splice(index, 1);
+            updatePostFileList();
+        }
+
+        function removeInfoFile(index) {
+            infoFiles.splice(index, 1);
+            updateInfoFileList();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function clearAllFields() {
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productInfo').value = '';
+            document.getElementById('customerReview').value = '';
+            document.getElementById('affiliateLink').value = '';
+            document.getElementById('affiliateNotice').value = '';
+            postFiles = [];
+            infoFiles = [];
+            updatePostFileList();
+            updateInfoFileList();
+        }
+
+        function generatePreview() {
+            const content = buildMessageContent();
+            
+            // 모든 파일을 하나의 배열로 합치기
+            const allFiles = [...postFiles, ...infoFiles];
+            
+            const discordMessage = {
+                content: content,
+                author: {
+                    id: "123456789",
+                    username: "testuser",
+                    discriminator: "0001"
+                },
+                timestamp: new Date().toISOString(),
+                attachments: allFiles.map((file, index) => ({
+                    id: `img${index.toString().padStart(3, '0')}`,
+                    filename: file.name,
+                    size: file.size,
+                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'file://local-file',
+                    content_type: file.type || 'image/png'
+                }))
+            };
+
+            document.getElementById('jsonPreview').textContent = JSON.stringify(discordMessage, null, 2);
+        }
+
+        function buildMessageContent() {
+            let content = '';
+            
+            const productName = document.getElementById('productName').value.trim();
+            const productPrice = document.getElementById('productPrice').value.trim();
+            const productInfo = document.getElementById('productInfo').value.trim();
+            const customerReview = document.getElementById('customerReview').value.trim();
+            const affiliateLink = document.getElementById('affiliateLink').value.trim();
+            const affiliateNotice = document.getElementById('affiliateNotice').value.trim();
+            
+            if (productName) content += `[제품명]${productName}[제품명]\n`;
+            if (productPrice) content += `[제품가격]${productPrice}[제품가격]\n`;
+            if (productInfo) content += `[제품정보]${productInfo}[제품정보]\n`;
+            if (customerReview) content += `[고객리뷰]${customerReview}[고객리뷰]\n`;
+            if (affiliateLink) content += `[구매링크]${affiliateLink}[구매링크]\n`;
+            if (affiliateNotice) content += `[대가성문구]${affiliateNotice}[대가성문구]\n`;
+            
+            return content.trim();
+        }
+
+        function clearAll() {
+            clearAllFields();
+            document.getElementById('jsonPreview').textContent = 'JSON 생성 버튼을 클릭하세요';
+        }
+
+        function sendWebhook() {
+            const url = document.getElementById('webhookUrl').value.trim();
+            const content = buildMessageContent();
+            
+            if (!url) {
+                showResult('웹훅 URL을 입력하고 저장해주세요.', 'error');
+                return;
+            }
+
+            // 모든 파일을 하나의 배열로 합치기
+            const allFiles = [...postFiles, ...infoFiles];
+
+            // JSON 데이터 생성
+            const discordMessage = {
+                content: content,
+                author: {
+                    id: "123456789",
+                    username: "testuser", 
+                    discriminator: "0001"
+                },
+                timestamp: new Date().toISOString(),
+                attachments: allFiles.map((file, index) => ({
+                    id: `img${index.toString().padStart(3, '0')}`,
+                    filename: file.name,
+                    size: file.size,
+                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'file://local-file',
+                    content_type: file.type || 'image/png'
+                }))
+            };
+
+            const startTime = Date.now();
+            showResult('전송 중...', 'info');
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(discordMessage)
+            })
+            .then(response => {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                const success = response.ok;
+                const status = `상태: ${response.status} ${response.statusText}`;
+                const timing = `응답 시간: ${duration}ms`;
+                
+                // 기록 저장
+                saveToHistory({
+                    url: url,
+                    method: 'POST',
+                    data: JSON.stringify(discordMessage),
+                    status: response.status,
+                    success: success,
+                    timestamp: new Date().toISOString(),
+                    duration: duration
+                });
+                
+                return response.text().then(text => {
+                    let message = `${status}\n${timing}`;
+                    if (text) {
+                        message += `\n응답 내용: ${text}`;
+                    }
+                    showResult(message, success ? 'success' : 'error');
+                });
+            })
+            .catch(error => {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                saveToHistory({
+                    url: url,
+                    method: 'POST',
+                    data: JSON.stringify(discordMessage),
+                    error: error.message,
+                    success: false,
+                    timestamp: new Date().toISOString(),
+                    duration: duration
+                });
+                
+                showResult(`네트워크 오류: ${error.message}\n응답 시간: ${duration}ms`, 'error');
+            });
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = type;
+            resultDiv.innerHTML = `<div>${message.replace(/\n/g, '<br>')}</div>`;
+        }
+
+        function saveToHistory(record) {
+            sendHistory.unshift(record);
+            
+            // 1일 지난 기록 자동 정리
+            cleanupOldHistory();
+            
+            // 최대 50개 기록 유지
+            if (sendHistory.length > 50) {
+                sendHistory = sendHistory.slice(0, 50);
+            }
+            
+            safeSetLocalStorage('webhookHistory', JSON.stringify(sendHistory));
+        }
+
+        function displayHistory() {
+            const historyDiv = document.getElementById('historyList');
+            if (sendHistory.length === 0) {
+                historyDiv.innerHTML = '<p>전송 기록이 없습니다.</p>';
+                return;
+            }
+
+            let html = '';
+            sendHistory.forEach((record, index) => {
+                const timestamp = new Date(record.timestamp).toLocaleString('ko-KR');
+                const timeAgo = getTimeAgo(record.timestamp);
+                const statusClass = record.success ? 'success' : 'error';
+                const status = record.error ? `오류: ${record.error}` : `응답: ${record.status}`;
+                
+                html += `
+                    <div class="file-item" style="padding: 10px; margin-bottom: 5px; background: ${record.success ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
+                        <div>
+                            <strong>${record.method}</strong> - ${timestamp} (${timeAgo})
+                            <br>URL: ${record.url.substring(0, 60)}...
+                            <br>${status} (${record.duration}ms)
+                        </div>
+                    </div>
+                `;
+            });
+            historyDiv.innerHTML = html;
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = Date.now();
+            const recordTime = new Date(timestamp).getTime();
+            const diff = Math.floor((now - recordTime) / 1000); // 초 단위
+            
+            if (diff < 60) return `${diff}초 전`;
+            if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+            return `${Math.floor(diff / 86400)}일 전`;
+        }
+
+        function clearHistory() {
+            sendHistory = [];
+            safeRemoveLocalStorage('webhookHistory');
+            displayHistory();
+            showResult('전송 기록이 삭제되었습니다.', 'info');
+        }
+
+        function loadTemplate(templateName) {
+            // 더 이상 사용하지 않는 함수이지만 호환성을 위해 유지
+            clearAllFields();
+        }
+
+        function simulateFile(filename) {
+            // 더 이상 사용하지 않는 함수이지만 호환성을 위해 유지
         }
     </script>
 </body>
