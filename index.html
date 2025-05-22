@@ -239,7 +239,7 @@
 
                 <div class="form-group">
                     <label for="productInfo">제품정보:</label>
-                    <textarea id="productInfo" rows="3" placeholder="제품의 주요 특징과 기능을 설명해주세요"></textarea>
+                    <textarea id="productInfo" rows="10" placeholder="제품의 주요 특징과 기능을 설명해주세요"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -249,7 +249,7 @@
 
                 <div class="form-group">
                     <label for="affiliateLink">구매링크:</label>
-                    <textarea id="affiliateLink" rows="3" placeholder="구매 링크들을 입력해주세요. 여러 링크가 있을 경우 줄바꿈으로 구분하세요."></textarea>
+                    <textarea id="affiliateLink" rows="1" placeholder="구매 링크를 입력해주세요"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -257,18 +257,7 @@
                     <textarea id="affiliateNotice" rows="2" placeholder="예: 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."></textarea>
                 </div>
 
-                <!-- 포스팅 이미지 첨부 -->
-                <div class="form-group">
-                    <label>포스팅 이미지 (1개):</label>
-                    <div class="file-upload-area">
-                        <input type="file" id="postFileInput" accept="image/*" style="display: none;">
-                        <button onclick="document.getElementById('postFileInput').click()">포스팅 이미지 선택</button>
-                        <p>post.png 파일을 업로드하세요</p>
-                    </div>
-                    <div id="postFileList" class="file-list" style="display: none;"></div>
-                </div>
-
-                <!-- 정보 이미지들 첨부 -->
+                <!-- 정보 이미지들 첨부 (먼저 배치) -->
                 <div class="form-group">
                     <label>정보 이미지들 (최대 4개):</label>
                     <div class="file-upload-area">
@@ -277,6 +266,17 @@
                         <p>info-1.png, info-2.png, info-3.png, info-4.png 파일들을 업로드하세요</p>
                     </div>
                     <div id="infoFileList" class="file-list" style="display: none;"></div>
+                </div>
+
+                <!-- 포스팅 이미지 첨부 (나중에 배치) -->
+                <div class="form-group">
+                    <label>포스팅 이미지 (1개):</label>
+                    <div class="file-upload-area">
+                        <input type="file" id="postFileInput" accept="image/*" style="display: none;">
+                        <button onclick="document.getElementById('postFileInput').click()">포스팅 이미지 선택</button>
+                        <p>post.png 파일을 업로드하세요</p>
+                    </div>
+                    <div id="postFileList" class="file-list" style="display: none;"></div>
                 </div>
             </div>
 
@@ -547,8 +547,8 @@
         function generatePreview() {
             const content = buildMessageContent();
             
-            // 모든 파일을 하나의 배열로 합치기
-            const allFiles = [...postFiles, ...infoFiles];
+            // 모든 파일을 하나의 배열로 합치기 (info 파일 먼저)
+            const allFiles = [...infoFiles, ...postFiles];
             
             const discordMessage = {
                 content: content,
@@ -607,8 +607,8 @@
                 return;
             }
 
-            // 모든 파일을 하나의 배열로 합치기
-            const allFiles = [...postFiles, ...infoFiles];
+            // 모든 파일을 하나의 배열로 합치기 (info 파일 먼저)
+            const allFiles = [...infoFiles, ...postFiles];
 
             // JSON 데이터 생성
             const discordMessage = {
@@ -631,7 +631,7 @@
             };
 
             const startTime = Date.now();
-            showResult('전송 중...', 'info');
+            appendToResultLog('🚀 전송 시작...', 'info');
 
             fetch(url, {
                 method: 'POST',
@@ -671,7 +671,9 @@
                                 handleMakeComError(responseData);
                             }
                         } catch (e) {
+                            // JSON 파싱 실패 시 원본 텍스트 표시
                             message += `\n📝 응답 내용: ${text}`;
+                            console.log('JSON 파싱 오류:', e, 'Original text:', text);
                         }
                     }
                     
