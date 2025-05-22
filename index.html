@@ -306,10 +306,10 @@
     <script>
         // 템플릿 데이터 (먼저 정의)
         const templates = {
-            textOnly: "[제품명]애플 에어팟 프로 3세대[제품명]\n[제품가격]359,000원[제품가격]\n[제품정보]최신 액티브 노이즈 캔슬링 기술이 적용된 프리미엄 무선 이어폰입니다. 공간 음향 기능과 적응형 EQ로 개인 맞춤형 청취 경험을 제공합니다.[제품정보]\n[고객리뷰]음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요. 장시간 착용해도 편안합니다.[고객리뷰]\n[구매링크]https://partners.coupang.com/products/12345[구매링크]\n[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.[대가성문구]",
+            textOnly: "[제품명]애플 에어팟 프로 3세대\n[제품가격]359,000원\n[제품정보]최신 액티브 노이즈 캔슬링 기술이 적용된 프리미엄 무선 이어폰입니다. 공간 음향 기능과 적응형 EQ로 개인 맞춤형 청취 경험을 제공합니다.\n[고객리뷰]음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요. 장시간 착용해도 편안합니다.\n[구매링크]https://partners.coupang.com/products/12345\n[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
             postImage: "포스팅 이미지 업로드 테스트",
             infoImages: "정보 이미지들 업로드 테스트",
-            complete: "[제품명]삼성 갤럭시 버즈3 프로[제품명]\n[제품가격]299,000원[제품가격]\n[제품정보]360도 오디오 기술과 AI 기반 노이즈 캔슬링을 탑재한 프리미엄 무선 이어폰입니다.[제품정보]\n[고객리뷰]통화 품질이 정말 좋고, 배터리 지속시간도 만족스럽습니다.[고객리뷰]\n[구매링크]https://partners.coupang.com/products/67890[구매링크]\n[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.[대가성문구]",
+            complete: "[제품명]삼성 갤럭시 버즈3 프로\n[제품가격]299,000원\n[제품정보]360도 오디오 기술과 AI 기반 노이즈 캔슬링을 탑재한 프리미엄 무선 이어폰입니다.\n[고객리뷰]통화 품질이 정말 좋고, 배터리 지속시간도 만족스럽습니다.\n[구매링크]https://partners.coupang.com/products/67890\n[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
             posting: "#포스팅",
             template: "템플릿"
         };
@@ -558,12 +558,12 @@
             const affiliateLink = document.getElementById('affiliateLink').value.trim();
             const affiliateNotice = document.getElementById('affiliateNotice').value.trim();
             
-            if (productName) content += `[제품명]${productName}[제품명]\n`;
-            if (productPrice) content += `[제품가격]${productPrice}[제품가격]\n`;
-            if (productInfo) content += `[제품정보]${productInfo}[제품정보]\n`;
-            if (customerReview) content += `[고객리뷰]${customerReview}[고객리뷰]\n`;
-            if (affiliateLink) content += `[구매링크]${affiliateLink}[구매링크]\n`;
-            if (affiliateNotice) content += `[대가성문구]${affiliateNotice}[대가성문구]\n`;
+            if (productName) content += `[제품명]${productName}\n`;
+            if (productPrice) content += `[제품가격]${productPrice}\n`;
+            if (productInfo) content += `[제품정보]${productInfo}\n`;
+            if (customerReview) content += `[고객리뷰]${customerReview}\n`;
+            if (affiliateLink) content += `[구매링크]${affiliateLink}\n`;
+            if (affiliateNotice) content += `[대가성문구]${affiliateNotice}\n`;
             
             return content.trim();
         }
