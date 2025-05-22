@@ -665,6 +665,16 @@
         }
 
         function saveToHistory(record) {
+            // JSON 데이터에서 상품명 추출
+            try {
+                const messageData = JSON.parse(record.data);
+                const content = messageData.content || '';
+                const productNameMatch = content.match(/\[제품명\]([^\n\[]+)/);
+                record.productName = productNameMatch ? productNameMatch[1].trim() : '';
+            } catch (e) {
+                record.productName = '';
+            }
+            
             sendHistory.unshift(record);
             
             // 1일 지난 기록 자동 정리
@@ -691,11 +701,13 @@
                 const timeAgo = getTimeAgo(record.timestamp);
                 const statusClass = record.success ? 'success' : 'error';
                 const status = record.error ? `오류: ${record.error}` : `응답: ${record.status}`;
+                const productName = record.productName || '상품명 없음';
                 
                 html += `
                     <div class="file-item" style="padding: 10px; margin-bottom: 5px; background: ${record.success ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
                         <div>
                             <strong>${record.method}</strong> - ${timestamp} (${timeAgo})
+                            <br><strong>상품:</strong> ${productName}
                             <br>URL: ${record.url.substring(0, 60)}...
                             <br>${status} (${record.duration}ms)
                         </div>
