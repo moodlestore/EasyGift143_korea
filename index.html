@@ -560,7 +560,9 @@
                     size: file.size,
                     url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'data:' + file.type + ';base64,' + (file.base64Data ? file.base64Data.split(',')[1] : ''),
                     content_type: file.type || 'image/png',
-                    base64: file.base64Data ? file.base64Data.split(',')[1] : null
+                    base64: file.base64Data ? file.base64Data.split(',')[1] : null,
+                    // 디버깅용 추가 정보
+                    originalBase64: file.base64Data || null
                 }))
             };
 
@@ -617,9 +619,10 @@
                     id: `img${index.toString().padStart(3, '0')}`,
                     filename: file.name,
                     size: file.size,
-                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'data:' + file.type + ';base64,' + (file.base64Data ? file.base64Data.split(',')[1] : ''),
+                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : null,
                     content_type: file.type || 'image/png',
-                    base64: file.base64Data ? file.base64Data.split(',')[1] : null
+                    base64: file.base64Data ? file.base64Data.split(',')[1] : null,
+                    is_local_file: !file.isSimulated
                 }))
             };
 
@@ -641,22 +644,39 @@
                 const status = `상태: ${response.status} ${response.statusText}`;
                 const timing = `응답 시간: ${duration}ms`;
                 
-                // 기록 저장
-                saveToHistory({
-                    url: url,
-                    method: 'POST',
-                    data: JSON.stringify(discordMessage),
-                    status: response.status,
-                    success: success,
-                    timestamp: new Date().toISOString(),
-                    duration: duration
-                });
-                
                 return response.text().then(text => {
                     let message = `${status}\n${timing}`;
+                    let responseData = null;
+                    
+                    // Make.com 응답 처리
                     if (text) {
-                        message += `\n응답 내용: ${text}`;
+                        try {
+                            responseData = JSON.parse(text);
+                            message += `\n응답 내용: ${text}`;
+                            
+                            // Make.com 작업 완료 처리
+                            if (responseData.status === 'success') {
+                                handleMakeComSuccess(responseData);
+                            } else if (responseData.status === 'error') {
+                                handleMakeComError(responseData);
+                            }
+                        } catch (e) {
+                            message += `\n응답 내용: ${text}`;
+                        }
                     }
+                    
+                    // 기록 저장
+                    saveToHistory({
+                        url: url,
+                        method: 'POST',
+                        data: JSON.stringify(discordMessage),
+                        status: response.status,
+                        success: success,
+                        timestamp: new Date().toISOString(),
+                        duration: duration,
+                        response: responseData
+                    });
+                    
                     showResult(message, success ? 'success' : 'error');
                 });
             })
@@ -753,6 +773,105 @@
             safeRemoveLocalStorage('webhookHistory');
             displayHistory();
             showResult('전송 기록이 삭제되었습니다.', 'info');
+        }
+
+        // Make.com 작업 완료 처리 함수들
+        function handleMakeComSuccess(responseData) {
+            console.log('Make.com 작업 성공:', responseData);
+            
+            // 성공 알림 표시
+            showMakeComNotification('✅ 작업 완료!', responseData.message || '성공적으로 처리되었습니다.', 'success');
+            
+            // 처리된 파일 정보 표시
+            if (responseData.uploaded_files && responseData.uploaded_files.length > 0) {
+                const fileList = responseData.uploaded_files.join(', ');
+                showMakeComNotification('📁 업로드 완료', `업로드된 파일: ${fileList}`, 'info');
+            }
+            
+            // 자동으로 폼 초기화 (선택사항)
+            if (responseData.auto_clear) {
+                setTimeout(() => {
+                    clearAllFields();
+                    showMakeComNotification('🔄 폼 초기화', '새로운 제품 등록을 위해 폼이 초기화되었습니다.', 'info');
+                }, 2000);
+            }
+        }
+
+        function handleMakeComError(responseData) {
+            console.log('Make.com 작업 실패:', responseData);
+            
+            // 오류 알림 표시
+            showMakeComNotification('❌ 작업 실패', responseData.message || '처리 중 오류가 발생했습니다.', 'error');
+            
+            // 상세 오류 정보 표시
+            if (responseData.error_details) {
+                showMakeComNotification('🔍 오류 상세', responseData.error_details, 'error');
+            }
+        }
+
+        function showMakeComNotification(title, message, type) {
+            // 기존 알림 제거
+            const existingNotification = document.getElementById('makeComNotification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // 새 알림 생성
+            const notification = document.createElement('div');
+            notification.id = 'makeComNotification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 300px;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 1000;
+                background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+                border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
+                color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            notification.innerHTML = `
+                <strong>${title}</strong><br>
+                <span style="font-size: 14px;">${message}</span>
+                <button onclick="this.parentElement.remove()" style="
+                    position: absolute;
+                    top: 5px;
+                    right: 8px;
+                    background: none;
+                    border: none;
+                    font-size: 16px;
+                    cursor: pointer;
+                    color: inherit;
+                    margin: 0;
+                    padding: 0;
+                ">×</button>
+            `;
+            
+            // CSS 애니메이션 추가
+            if (!document.querySelector('#notificationStyles')) {
+                const style = document.createElement('style');
+                style.id = 'notificationStyles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // 5초 후 자동 제거
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
         }
 
         function loadTemplate(templateName) {
