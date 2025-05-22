@@ -649,7 +649,8 @@
                 const timing = `응답 시간: ${duration}ms`;
                 
                 return response.text().then(text => {
-                    let message = `${status}\n${timing}`;
+                    // 기본 정보를 정돈된 형태로 구성
+                    let message = `🌐 상태: ${response.status} ${response.statusText}\n⏱️ 응답 시간: ${duration}ms`;
                     let responseData = null;
                     
                     // Make.com 응답 처리
@@ -657,9 +658,11 @@
                         try {
                             responseData = JSON.parse(text);
                             
-                            // 정돈된 응답 메시지 생성
+                            // 정돈된 응답 메시지 추가
                             const formattedResponse = formatResponseMessage(responseData);
-                            message += `\n${formattedResponse}`;
+                            if (formattedResponse) {
+                                message += `\n${formattedResponse}`;
+                            }
                             
                             // Make.com 작업 완료 처리 (알림은 별도로)
                             if (responseData.status === 'success') {
@@ -668,7 +671,7 @@
                                 handleMakeComError(responseData);
                             }
                         } catch (e) {
-                            message += `\n응답 내용: ${text}`;
+                            message += `\n📝 응답 내용: ${text}`;
                         }
                     }
                     
@@ -692,6 +695,8 @@
                 const endTime = Date.now();
                 const duration = endTime - startTime;
                 
+                const errorMessage = `❌ 상태: 네트워크 오류\n📝 메시지: ${error.message}\n⏱️ 응답 시간: ${duration}ms`;
+                
                 saveToHistory({
                     url: url,
                     method: 'POST',
@@ -702,7 +707,7 @@
                     duration: duration
                 });
                 
-                showResult(`네트워크 오류: ${error.message}\n응답 시간: ${duration}ms`, 'error');
+                appendToResultLog(errorMessage, 'error');
             });
         }
 
