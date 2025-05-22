@@ -254,7 +254,7 @@
 
                 <div class="form-group">
                     <label for="affiliateNotice">대가성문구:</label>
-                    <textarea id="affiliateNotice" rows="2" placeholder="예: 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."></textarea>
+                    <textarea id="affiliateNotice" rows="1" placeholder="어필리에이트 대가성 문구를 입력해 주세요."></textarea>
                 </div>
 
                 <!-- 정보 이미지들 첨부 (먼저 배치) -->
@@ -724,29 +724,27 @@
             
             let formatted = '';
             
-            // 상태 표시
+            // 상태 표시 (아이콘 포함)
             if (responseData.status) {
-                formatted += `상태: ${responseData.status}\n`;
+                const statusIcon = responseData.status === 'success' ? '✅' : responseData.status === 'error' ? '❌' : 'ℹ️';
+                formatted += `${statusIcon} 상태: ${responseData.status}\n`;
             }
             
             // 메시지 표시
             if (responseData.message) {
-                formatted += `메시지: ${responseData.message}\n`;
+                formatted += `📝 메시지: ${responseData.message}\n`;
             }
             
-            // 에러 상세 정보
+            // 상세 정보 (에러 상세 또는 업로드된 파일)
+            let details = '';
             if (responseData.error_details) {
-                formatted += `상세: ${responseData.error_details}\n`;
+                details = responseData.error_details;
+            } else if (responseData.status === 'success' && responseData.uploaded_files && responseData.uploaded_files.length > 0) {
+                details = responseData.uploaded_files.join(', ');
             }
             
-            // 성공 시 추가 정보
-            if (responseData.status === 'success') {
-                if (responseData.uploaded_files && responseData.uploaded_files.length > 0) {
-                    formatted += `업로드된 파일: ${responseData.uploaded_files.join(', ')}\n`;
-                }
-                if (responseData.processed_items) {
-                    formatted += `처리된 항목: ${responseData.processed_items}개\n`;
-                }
+            if (details) {
+                formatted += `📝 상세: ${details}\n`;
             }
             
             return formatted.trim();
