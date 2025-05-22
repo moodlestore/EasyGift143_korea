@@ -726,27 +726,26 @@
             
             // 상태 표시
             if (responseData.status) {
-                const statusIcon = responseData.status === 'success' ? '✅' : responseData.status === 'error' ? '❌' : 'ℹ️';
-                formatted += `${statusIcon} 상태: ${responseData.status}\n`;
+                formatted += `상태: ${responseData.status}\n`;
             }
             
             // 메시지 표시
             if (responseData.message) {
-                formatted += `📝 메시지: ${responseData.message}\n`;
+                formatted += `메시지: ${responseData.message}\n`;
             }
             
             // 에러 상세 정보
             if (responseData.error_details) {
-                formatted += `🔍 상세: ${responseData.error_details}\n`;
+                formatted += `상세: ${responseData.error_details}\n`;
             }
             
             // 성공 시 추가 정보
             if (responseData.status === 'success') {
                 if (responseData.uploaded_files && responseData.uploaded_files.length > 0) {
-                    formatted += `📁 업로드된 파일: ${responseData.uploaded_files.join(', ')}\n`;
+                    formatted += `업로드된 파일: ${responseData.uploaded_files.join(', ')}\n`;
                 }
                 if (responseData.processed_items) {
-                    formatted += `🔢 처리된 항목: ${responseData.processed_items}개\n`;
+                    formatted += `처리된 항목: ${responseData.processed_items}개\n`;
                 }
             }
             
