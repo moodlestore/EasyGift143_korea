@@ -800,10 +800,10 @@
         function handleMakeComError(responseData) {
             console.log('Make.com 작업 실패:', responseData);
             
-            // 오류 알림 표시
+            // 통일된 오류 알림 표시
             showMakeComNotification('❌ 작업 실패', responseData.message || '처리 중 오류가 발생했습니다.', 'error');
             
-            // 상세 오류 정보 표시
+            // 상세 오류 정보가 있으면 표시
             if (responseData.error_details) {
                 showMakeComNotification('🔍 오류 상세', responseData.error_details, 'error');
             }
