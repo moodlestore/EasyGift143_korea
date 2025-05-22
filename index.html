@@ -436,7 +436,16 @@
                 return;
             }
             postFiles = Array.from(files);
-            updatePostFileList();
+            
+            // 파일을 Base64로 변환
+            postFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    file.base64Data = e.target.result;
+                    updatePostFileList();
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
         function handleInfoFiles(files) {
@@ -446,7 +455,16 @@
                 return;
             }
             infoFiles = Array.from(files);
-            updateInfoFileList();
+            
+            // 파일을 Base64로 변환
+            infoFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    file.base64Data = e.target.result;
+                    updateInfoFileList();
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
         function updatePostFileList() {
@@ -540,8 +558,9 @@
                     id: `img${index.toString().padStart(3, '0')}`,
                     filename: file.name,
                     size: file.size,
-                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'file://local-file',
-                    content_type: file.type || 'image/png'
+                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'data:' + file.type + ';base64,' + (file.base64Data ? file.base64Data.split(',')[1] : ''),
+                    content_type: file.type || 'image/png',
+                    base64: file.base64Data ? file.base64Data.split(',')[1] : null
                 }))
             };
 
@@ -598,8 +617,9 @@
                     id: `img${index.toString().padStart(3, '0')}`,
                     filename: file.name,
                     size: file.size,
-                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'file://local-file',
-                    content_type: file.type || 'image/png'
+                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'data:' + file.type + ';base64,' + (file.base64Data ? file.base64Data.split(',')[1] : ''),
+                    content_type: file.type || 'image/png',
+                    base64: file.base64Data ? file.base64Data.split(',')[1] : null
                 }))
             };
 
