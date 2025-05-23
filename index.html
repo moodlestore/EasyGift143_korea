@@ -362,7 +362,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.2-memory</strong> by IdeaForest24
+        <strong>v1.0.3-memory</strong> by IdeaForest24
     </div>
 
     <script>
@@ -943,6 +943,7 @@
             }
         }
 
+       // 수정된 sendWebhook 함수 - 디버깅 강화
         function sendWebhook(urlFieldId) {
             try {
                 const url = document.getElementById(urlFieldId).value.trim();
@@ -989,41 +990,54 @@
                     const endTime = Date.now();
                     const duration = endTime - startTime;
                     
-                    const success = response.ok;
+                    console.log(`웹훅 응답 상태: ${response.status}, URL: ${urlFieldId}`);
                     
                     return response.text().then(text => {
+                        console.log(`응답 텍스트: "${text}"`);
+                        
                         let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
                         let responseData = null;
                         
                         if (text) {
                             try {
                                 responseData = JSON.parse(text);
-                                console.log('응답 데이터:', responseData); // 디버깅용 로그 추가
+                                console.log('파싱된 응답 데이터:', responseData);
                                 
                                 const formattedResponse = formatResponseMessage(responseData);
                                 if (formattedResponse) {
                                     message += `\n${formattedResponse}`;
                                 }
                                 
-                                // 웹훅 1이 성공했고, 지금이 첫 번째 웹훅이라면 두 번째 웹훅 자동 전송
-                                if (responseData && responseData.status === 'success') {
-                                    console.log('성공 응답 감지:', urlFieldId);
-                                    handleMakeComSuccess(responseData);
-                                    
-                                    if (urlFieldId === 'webhookUrl1') {
-                                        console.log('웹훅 1 성공, 웹훅 2 자동 전송 준비...');
-                                        addLogEntry(`웹훅 1 성공, 웹훅 2 (Buffer) 자동 전송 시작...`, 'info');
-                                        
-                                        // 웹훅 2는 제품명만 전송
-                                        sendWebhookWithProductNameOnly('webhookUrl2');
-                                    }
-                                } else if (responseData && responseData.status === 'error') {
-                                    handleMakeComError(responseData);
-                                }
                             } catch (e) {
+                                console.log('JSON 파싱 실패:', e);
                                 message += `\n응답 내용: ${text}`;
-                                console.log('JSON 파싱 오류:', e, 'Original text:', text);
+                                
+                                // JSON 파싱 실패 시에도 success 체크 시도
+                                if (text.includes('success') || text.includes('"status":"success"')) {
+                                    console.log('텍스트에서 success 발견, 웹훅 2 호출 시도');
+                                    responseData = { status: 'success', message: '텍스트 파싱을 통한 성공 감지' };
+                                }
                             }
+                        }
+                        
+                        // 성공 처리 및 웹훅 2 자동 호출
+                        if (responseData && responseData.status === 'success' && urlFieldId === 'webhookUrl1') {
+                            console.log('웹훅 1 성공 확인, 웹훅 2 호출 준비');
+                            addLogEntry(`✅ 웹훅 1 성공! 2초 후 웹훅 2 (Buffer) 자동 전송...`, 'success');
+                            
+                            // 2초 지연 후 웹훅 2 호출
+                            setTimeout(() => {
+                                console.log('웹훅 2 호출 시작');
+                                sendWebhookWithProductNameOnly('webhookUrl2');
+                            }, 2000);
+                            
+                        } else if (responseData && responseData.status === 'error') {
+                            handleMakeComError(responseData);
+                        }
+                        
+                        // 일반 성공 처리
+                        if (responseData && responseData.status === 'success') {
+                            handleMakeComSuccess(responseData);
                         }
                         
                         saveToHistory({
@@ -1032,18 +1046,20 @@
                             method: 'POST',
                             data: JSON.stringify(discordMessage),
                             status: response.status,
-                            success: success,
+                            success: response.ok,
                             timestamp: new Date().toISOString(),
                             duration: duration,
                             response: responseData
                         });
                         
-                        addLogEntry(message, success ? 'success' : 'error');
+                        addLogEntry(message, response.ok ? 'success' : 'error');
                     });
                 })
                 .catch(error => {
                     const endTime = Date.now();
                     const duration = endTime - startTime;
+                    
+                    console.log('웹훅 전송 오류:', error);
                     
                     const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
                     
@@ -1062,6 +1078,129 @@
                 });
             } catch (e) {
                 console.log('웹훅 전송 오류:', e);
+                addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
+            }
+        }
+
+        // 수정된 sendWebhookWithProductNameOnly 함수 - 디버깅 강화
+        function sendWebhookWithProductNameOnly(urlFieldId) {
+            try {
+                console.log(`웹훅 2 함수 호출됨: ${urlFieldId}`);
+                
+                const url = document.getElementById(urlFieldId).value.trim();
+                
+                if (!url) {
+                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력하고 저장해주세요.`, 'error');
+                    return;
+                }
+
+                // 제품명만 추출
+                const productName = document.getElementById('productName').value.trim();
+                
+                if (!productName) {
+                    addLogEntry(`제품명이 없습니다. 제품명을 입력해주세요.`, 'error');
+                    return;
+                }
+
+                // 간소화된 메시지 구성
+                const simpleMessage = {
+                    content: `[제품명]${productName}`,
+                    author: {
+                        id: "123456789",
+                        username: "testuser", 
+                        discriminator: "0001"
+                    },
+                    timestamp: new Date().toISOString(),
+                    attachments: []
+                };
+
+                const startTime = Date.now();
+                const webhookLabel = getWebhookLabel(urlFieldId);
+                
+                console.log(`웹훅 2 전송 시작: ${url}`);
+                addLogEntry(`${webhookLabel} 전송 중... (제품명: ${productName})`, 'info');
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(simpleMessage)
+                })
+                .then(response => {
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+                    
+                    console.log(`웹훅 2 응답 상태: ${response.status}`);
+                    
+                    return response.text().then(text => {
+                        console.log(`웹훅 2 응답 텍스트: "${text}"`);
+                        
+                        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
+                        let responseData = null;
+                        
+                        if (text) {
+                            try {
+                                responseData = JSON.parse(text);
+                                console.log('웹훅 2 파싱된 응답:', responseData);
+                                
+                                const formattedResponse = formatResponseMessage(responseData);
+                                if (formattedResponse) {
+                                    message += `\n${formattedResponse}`;
+                                }
+                                
+                                if (responseData && responseData.status === 'success') {
+                                    addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
+                                    handleMakeComSuccess(responseData);
+                                } else if (responseData && responseData.status === 'error') {
+                                    handleMakeComError(responseData);
+                                }
+                            } catch (e) {
+                                console.log('웹훅 2 JSON 파싱 실패:', e);
+                                message += `\n응답 내용: ${text}`;
+                            }
+                        }
+                        
+                        saveToHistory({
+                            url: url,
+                            webhookType: webhookLabel + ' (제품명만 전송)',
+                            method: 'POST',
+                            data: JSON.stringify(simpleMessage),
+                            status: response.status,
+                            success: response.ok,
+                            timestamp: new Date().toISOString(),
+                            duration: duration,
+                            response: responseData,
+                            productName: productName
+                        });
+                        
+                        addLogEntry(message, response.ok ? 'success' : 'error');
+                    });
+                })
+                .catch(error => {
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+                    
+                    console.log('웹훅 2 전송 오류:', error);
+                    
+                    const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
+                    
+                    saveToHistory({
+                        url: url,
+                        webhookType: webhookLabel + ' (제품명만 전송)',
+                        method: 'POST',
+                        data: JSON.stringify(simpleMessage),
+                        error: error.message,
+                        success: false,
+                        timestamp: new Date().toISOString(),
+                        duration: duration,
+                        productName: productName
+                    });
+                    
+                    addLogEntry(errorMessage, 'error');
+                });
+            } catch (e) {
+                console.log('웹훅 2 전송 오류:', e);
                 addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
             }
         }
