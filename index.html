@@ -362,7 +362,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.4-memory</strong> by IdeaForest24
+        <strong>v1.0.2-memory</strong> by IdeaForest24
     </div>
 
     <script>
@@ -372,7 +372,7 @@
         let sendHistory = [];
         
         // 앱 버전 정보
-        const APP_VERSION = "v1.0.4-memory";
+        const APP_VERSION = "v1.0.2-memory";
         
         // 메모리 기반 저장소 (localStorage 대체)
         const memoryStorage = {
@@ -764,4 +764,555 @@
                     }))
                 };
 
-                document.getElementById('jsonPreview').textContent = JSON.stringify(discordMessage, null, 2
+                document.getElementById('jsonPreview').textContent = JSON.stringify(discordMessage, null, 2);
+            } catch (e) {
+                console.log('JSON 미리보기 생성 오류:', e);
+                addLogEntry('JSON 미리보기 생성 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        function buildMessageContent() {
+            try {
+                let content = '';
+                
+                const productName = document.getElementById('productName').value.trim();
+                const productPrice = document.getElementById('productPrice').value.trim();
+                const productInfo = document.getElementById('productInfo').value.trim();
+                const customerReview = document.getElementById('customerReview').value.trim();
+                const affiliateLink = document.getElementById('affiliateLink').value.trim();
+                const affiliateNotice = document.getElementById('affiliateNotice').value.trim();
+                
+                if (productName) content += `[제품명]${productName}\n`;
+                if (productPrice) content += `[제품가격]${productPrice}\n`;
+                if (productInfo) content += `[제품정보]${productInfo}\n`;
+                if (customerReview) content += `[고객리뷰]${customerReview}\n`;
+                if (affiliateLink) content += `[구매링크]${affiliateLink}\n`;
+                if (affiliateNotice) content += `[대가성문구]${affiliateNotice}\n`;
+                
+                return content.trim();
+            } catch (e) {
+                console.log('메시지 내용 생성 오류:', e);
+                return '';
+            }
+        }
+
+        function clearAll() {
+            try {
+                clearAllFields();
+                document.getElementById('jsonPreview').textContent = 'JSON 생성 버튼을 클릭하세요';
+            } catch (e) {
+                console.log('전체 초기화 오류:', e);
+            }
+        }
+
+        function startTransferProcess() {
+            try {
+                const url1 = document.getElementById('webhookUrl1').value.trim();
+                const url2 = document.getElementById('webhookUrl2').value.trim();
+                
+                if (!url1) {
+                    addLogEntry(`웹훅 1 (Airtable) URL을 입력하고 저장해주세요.`, 'error');
+                    return;
+                }
+
+                if (!url2) {
+                    addLogEntry(`웹훅 2 (Buffer) URL을 입력하고 저장해주세요.`, 'error');
+                    return;
+                }
+
+                addLogEntry(`전송 프로세스 시작...`, 'info');
+                sendWebhook('webhookUrl1');
+            } catch (e) {
+                console.log('전송 프로세스 시작 오류:', e);
+                addLogEntry(`전송 프로세스 시작 중 오류가 발생했습니다: ${e.message}`, 'error');
+            }
+        }
+
+        // 제품명만 전송하는 웹훅 함수
+        function sendWebhookWithProductNameOnly(urlFieldId) {
+            try {
+                const url = document.getElementById(urlFieldId).value.trim();
+                
+                if (!url) {
+                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력하고 저장해주세요.`, 'error');
+                    return;
+                }
+
+                // 제품명만 추출
+                const productName = document.getElementById('productName').value.trim();
+                
+                if (!productName) {
+                    addLogEntry(`제품명이 없습니다. 제품명을 입력해주세요.`, 'error');
+                    return;
+                }
+
+                // 간소화된 메시지 구성
+                const simpleMessage = {
+                    content: `[제품명]${productName}`,
+                    author: {
+                        id: "123456789",
+                        username: "testuser", 
+                        discriminator: "0001"
+                    },
+                    timestamp: new Date().toISOString(),
+                    // 첨부 파일 없음
+                    attachments: []
+                };
+
+                const startTime = Date.now();
+                const webhookLabel = getWebhookLabel(urlFieldId);
+                addLogEntry(`${webhookLabel} 전송 중... (제품명만 전송)`, 'info');
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(simpleMessage)
+                })
+                .then(response => {
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+                    
+                    const success = response.ok;
+                    
+                    return response.text().then(text => {
+                        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
+                        let responseData = null;
+                        
+                        if (text) {
+                            try {
+                                responseData = JSON.parse(text);
+                                console.log('Buffer 응답 데이터:', responseData);
+                                
+                                const formattedResponse = formatResponseMessage(responseData);
+                                if (formattedResponse) {
+                                    message += `\n${formattedResponse}`;
+                                }
+                                
+                                if (responseData && responseData.status === 'success') {
+                                    handleMakeComSuccess(responseData);
+                                } else if (responseData && responseData.status === 'error') {
+                                    handleMakeComError(responseData);
+                                }
+                            } catch (e) {
+                                message += `\n응답 내용: ${text}`;
+                                console.log('JSON 파싱 오류:', e, 'Original text:', text);
+                            }
+                        }
+                        
+                        saveToHistory({
+                            url: url,
+                            webhookType: webhookLabel + ' (제품명만 전송)',
+                            method: 'POST',
+                            data: JSON.stringify(simpleMessage),
+                            status: response.status,
+                            success: success,
+                            timestamp: new Date().toISOString(),
+                            duration: duration,
+                            response: responseData,
+                            productName: productName
+                        });
+                        
+                        addLogEntry(message, success ? 'success' : 'error');
+                    });
+                })
+                .catch(error => {
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+                    
+                    const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
+                    
+                    saveToHistory({
+                        url: url,
+                        webhookType: webhookLabel + ' (제품명만 전송)',
+                        method: 'POST',
+                        data: JSON.stringify(simpleMessage),
+                        error: error.message,
+                        success: false,
+                        timestamp: new Date().toISOString(),
+                        duration: duration,
+                        productName: productName
+                    });
+                    
+                    addLogEntry(errorMessage, 'error');
+                });
+            } catch (e) {
+                console.log('웹훅 전송 오류 (제품명):', e);
+                addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
+            }
+        }
+
+        function sendWebhook(urlFieldId) {
+            try {
+                const url = document.getElementById(urlFieldId).value.trim();
+                const content = buildMessageContent();
+                
+                if (!url) {
+                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력하고 저장해주세요.`, 'error');
+                    return;
+                }
+
+                const allFiles = [...infoFiles, ...postFiles];
+
+                const discordMessage = {
+                    content: content,
+                    author: {
+                        id: "123456789",
+                        username: "testuser", 
+                        discriminator: "0001"
+                    },
+                    timestamp: new Date().toISOString(),
+                    attachments: allFiles.map((file, index) => ({
+                        id: `img${index.toString().padStart(3, '0')}`,
+                        filename: file.name,
+                        size: file.size,
+                        url: null,
+                        content_type: file.type || 'image/png',
+                        base64: file.base64Data ? file.base64Data.split(',')[1] : null,
+                        is_local_file: true
+                    }))
+                };
+
+                const startTime = Date.now();
+                const webhookLabel = getWebhookLabel(urlFieldId);
+                addLogEntry(`${webhookLabel} 전송 중...`, 'info');
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(discordMessage)
+                })
+                .then(response => {
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+                    
+                    const success = response.ok;
+                    
+                    return response.text().then(text => {
+                        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
+                        let responseData = null;
+                        
+                        if (text) {
+                            try {
+                                responseData = JSON.parse(text);
+                                console.log('응답 데이터:', responseData); // 디버깅용 로그 추가
+                                
+                                const formattedResponse = formatResponseMessage(responseData);
+                                if (formattedResponse) {
+                                    message += `\n${formattedResponse}`;
+                                }
+                                
+                                // 웹훅 1이 성공했고, 지금이 첫 번째 웹훅이라면 두 번째 웹훅 자동 전송
+                                if (responseData && responseData.status === 'success') {
+                                    console.log('성공 응답 감지:', urlFieldId);
+                                    handleMakeComSuccess(responseData);
+                                    
+                                    if (urlFieldId === 'webhookUrl1') {
+                                        console.log('웹훅 1 성공, 웹훅 2 자동 전송 준비...');
+                                        addLogEntry(`웹훅 1 성공, 웹훅 2 (Buffer) 자동 전송 시작...`, 'info');
+                                        
+                                        // 웹훅 2는 제품명만 전송
+                                        sendWebhookWithProductNameOnly('webhookUrl2');
+                                    }
+                                } else if (responseData && responseData.status === 'error') {
+                                    handleMakeComError(responseData);
+                                }
+                            } catch (e) {
+                                message += `\n응답 내용: ${text}`;
+                                console.log('JSON 파싱 오류:', e, 'Original text:', text);
+                            }
+                        }
+                        
+                        saveToHistory({
+                            url: url,
+                            webhookType: webhookLabel,
+                            method: 'POST',
+                            data: JSON.stringify(discordMessage),
+                            status: response.status,
+                            success: success,
+                            timestamp: new Date().toISOString(),
+                            duration: duration,
+                            response: responseData
+                        });
+                        
+                        addLogEntry(message, success ? 'success' : 'error');
+                    });
+                })
+                .catch(error => {
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+                    
+                    const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
+                    
+                    saveToHistory({
+                        url: url,
+                        webhookType: webhookLabel,
+                        method: 'POST',
+                        data: JSON.stringify(discordMessage),
+                        error: error.message,
+                        success: false,
+                        timestamp: new Date().toISOString(),
+                        duration: duration
+                    });
+                    
+                    addLogEntry(errorMessage, 'error');
+                });
+            } catch (e) {
+                console.log('웹훅 전송 오류:', e);
+                addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
+            }
+        }
+
+        function formatResponseMessage(responseData) {
+            try {
+                if (!responseData) return '';
+                
+                let formatted = '';
+                console.log('formatResponseMessage 함수 호출됨, 데이터:', responseData);
+                
+                // 상태 표시 (아이콘 포함)
+                if (responseData.status) {
+                    const statusIcon = responseData.status === 'success' ? '✅' : responseData.status === 'error' ? '❌' : 'ℹ️';
+                    formatted += `${statusIcon} 상태: ${responseData.status}\n`;
+                }
+                
+                // 메시지 표시
+                if (responseData.message) {
+                    formatted += `📝 메시지: ${responseData.message}\n`;
+                }
+                
+                // 상세 정보 (에러 상세 또는 업로드된 파일)
+                let details = '';
+                if (responseData.error_details) {
+                    details = responseData.error_details;
+                } else if (responseData.status === 'success' && responseData.uploaded_files && responseData.uploaded_files.length > 0) {
+                    details = responseData.uploaded_files.join(', ');
+                }
+                
+                if (details) {
+                    formatted += `📝 상세: ${details}\n`;
+                }
+                
+                return formatted.trim();
+            } catch (e) {
+                console.log('응답 메시지 포맷 오류:', e);
+                return '';
+            }
+        }
+
+        function saveToHistory(record) {
+            try {
+                // JSON 데이터에서 상품명 추출
+                if (!record.productName) {
+                    try {
+                        const messageData = JSON.parse(record.data);
+                        const content = messageData.content || '';
+                        const productNameMatch = content.match(/\[제품명\]([^\n\[]+)/);
+                        record.productName = productNameMatch ? productNameMatch[1].trim() : '';
+                    } catch (e) {
+                        console.log('상품명 추출 오류:', e);
+                        record.productName = '';
+                    }
+                }
+                
+                sendHistory.unshift(record);
+                
+                // 1일 지난 기록 자동 정리
+                cleanupOldHistory();
+                
+                // 최대 50개 기록 유지
+                if (sendHistory.length > 50) {
+                    sendHistory = sendHistory.slice(0, 50);
+                }
+                
+                safeSetStorage('webhookHistory', JSON.stringify(sendHistory));
+            } catch (e) {
+                console.log('기록 저장 오류:', e);
+            }
+        }
+
+        function displayHistory() {
+            try {
+                const historyDiv = document.getElementById('historyList');
+                if (!historyDiv) return;
+                
+                if (sendHistory.length === 0) {
+                    historyDiv.innerHTML = '<p>전송 기록이 없습니다.</p>';
+                    return;
+                }
+
+                let html = '';
+                sendHistory.forEach((record, index) => {
+                    try {
+                        const timestamp = new Date(record.timestamp).toLocaleString('ko-KR');
+                        const timeAgo = getTimeAgo(record.timestamp);
+                        const status = record.error ? `오류: ${record.error}` : `응답: ${record.status}`;
+                        const productName = record.productName || '상품명 없음';
+                        const webhookType = record.webhookType || '웹훅';
+                        
+                        html += `
+                            <div class="file-item" style="padding: 10px; margin-bottom: 5px; background: ${record.success ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
+                                <div>
+                                    <strong>${webhookType}</strong> - ${timestamp} (${timeAgo})
+                                    <br><strong>상품:</strong> ${productName}
+                                    <br>URL: ${record.url ? record.url.substring(0, 60) + '...' : 'N/A'}
+                                    <br>${status} (${record.duration}ms)
+                                </div>
+                            </div>
+                        `;
+                    } catch (err) {
+                        console.log('기록 항목 처리 오류:', err);
+                    }
+                });
+                historyDiv.innerHTML = html;
+            } catch (e) {
+                console.log('기록 표시 오류:', e);
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            try {
+                const now = Date.now();
+                const recordTime = new Date(timestamp).getTime();
+                const diff = Math.floor((now - recordTime) / 1000); // 초 단위
+                
+                if (diff < 60) return `${diff}초 전`;
+                if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+                if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+                return `${Math.floor(diff / 86400)}일 전`;
+            } catch (e) {
+                console.log('시간 계산 오류:', e);
+                return 'N/A';
+            }
+        }
+
+        function clearHistory() {
+            try {
+                sendHistory = [];
+                safeRemoveStorage('webhookHistory');
+                displayHistory();
+                addLogEntry('전송 기록이 삭제되었습니다.', 'info');
+            } catch (e) {
+                console.log('기록 삭제 오류:', e);
+            }
+        }
+
+        // Make.com 작업 완료 처리 함수들
+        function handleMakeComSuccess(responseData) {
+            try {
+                console.log('Make.com 작업 성공:', responseData);
+                
+                // 성공 알림 표시
+                showMakeComNotification('✅ 작업 완료!', responseData.message || '성공적으로 처리되었습니다.', 'success');
+                
+                // 처리된 파일 정보 표시
+                if (responseData.uploaded_files && responseData.uploaded_files.length > 0) {
+                    const fileList = responseData.uploaded_files.join(', ');
+                    showMakeComNotification('📁 업로드 완료', `업로드된 파일: ${fileList}`, 'info');
+                }
+                
+                // 자동으로 폼 초기화 (선택사항)
+                if (responseData.auto_clear) {
+                    setTimeout(() => {
+                        clearAllFields();
+                        showMakeComNotification('🔄 폼 초기화', '새로운 제품 등록을 위해 폼이 초기화되었습니다.', 'info');
+                    }, 2000);
+                }
+            } catch (e) {
+                console.log('성공 처리 오류:', e);
+            }
+        }
+
+        function handleMakeComError(responseData) {
+            try {
+                console.log('Make.com 작업 실패:', responseData);
+                
+                // 통일된 오류 알림 표시
+                showMakeComNotification('❌ 작업 실패', responseData.message || '처리 중 오류가 발생했습니다.', 'error');
+                
+                // 상세 오류 정보가 있으면 표시
+                if (responseData.error_details) {
+                    showMakeComNotification('🔍 오류 상세', responseData.error_details, 'error');
+                }
+            } catch (e) {
+                console.log('오류 처리 오류:', e);
+            }
+        }
+
+        function showMakeComNotification(title, message, type) {
+            try {
+                // 기존 알림 제거
+                const existingNotification = document.getElementById('makeComNotification');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+                
+                // 새 알림 생성
+                const notification = document.createElement('div');
+                notification.id = 'makeComNotification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    max-width: 300px;
+                    padding: 15px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    z-index: 1000;
+                    background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+                    border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
+                    color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+                    animation: slideIn 0.3s ease-out;
+                `;
+                
+                notification.innerHTML = `
+                    <strong>${title}</strong><br>
+                    <span style="font-size: 14px;">${message}</span>
+                    <button onclick="this.parentElement.remove()" style="
+                        position: absolute;
+                        top: 5px;
+                        right: 8px;
+                        background: none;
+                        border: none;
+                        font-size: 16px;
+                        cursor: pointer;
+                        color: inherit;
+                        margin: 0;
+                        padding: 0;
+                    ">×</button>
+                `;
+                
+                // CSS 애니메이션 추가
+                if (!document.querySelector('#notificationStyles')) {
+                    const style = document.createElement('style');
+                    style.id = 'notificationStyles';
+                    style.textContent = `
+                        @keyframes slideIn {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                document.body.appendChild(notification);
+                
+                // 5초 후 자동 제거
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 5000);
+            } catch (e) {
+                console.log('알림 표시 오류:', e);
+            }
+        }
+
+        // 페이지 로드 시 앱 초기화
+        window.addEventListener('load', initializeApp);
+    </script>
+</body>
+</html>
