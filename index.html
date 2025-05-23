@@ -9,6 +9,8 @@
             padding: 20px; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            position: relative;
+            padding-bottom: 40px; /* 버전 정보를 위한 공간 확보 */
         }
         .container { 
             max-width: 800px; 
@@ -225,6 +227,20 @@
             margin-bottom: 4px;
             font-weight: bold;
         }
+        
+        /* 버전 정보 스타일 */
+        .version-info {
+            position: fixed;
+            bottom: 10px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -343,12 +359,20 @@
             </div>
         </div>
     </div>
+    
+    <!-- 버전 정보 -->
+    <div class="version-info">
+        <strong>v1.0.2-memory</strong> by IdeaForest24
+    </div>
 
     <script>
         // 저장된 데이터 변수 초기화
         let postFiles = [];
         let infoFiles = [];
         let sendHistory = [];
+        
+        // 앱 버전 정보
+        const APP_VERSION = "v1.0.2-memory";
         
         // 메모리 기반 저장소 (localStorage 대체)
         const memoryStorage = {
