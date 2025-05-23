@@ -362,7 +362,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.3-memory</strong> by IdeaForest24
+        <strong>v1.0.2-memory</strong> by IdeaForest24
     </div>
 
     <script>
@@ -372,7 +372,7 @@
         let sendHistory = [];
         
         // 앱 버전 정보
-        const APP_VERSION = "v1.0.3-memory";
+        const APP_VERSION = "v1.0.2-memory";
         
         // 메모리 기반 저장소 (localStorage 대체)
         const memoryStorage = {
@@ -871,59 +871,52 @@
                     body: JSON.stringify(simpleMessage)
                 })
                 .then(response => {
-    const endTime = Date.now();
-    const duration = endTime - startTime;
-    
-    const success = response.ok;
-    
-    return response.text().then(text => {
-        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
-        let responseData = null;
-        
-        if (text) {
-            try {
-                responseData = JSON.parse(text);
-                console.log('응답 데이터:', responseData);
-                
-                const formattedResponse = formatResponseMessage(responseData);
-                if (formattedResponse) {
-                    message += `\n${formattedResponse}`;
-                }
-                
-                // 웹훅 1이 성공했을 때만 웹훅 2 호출
-                if (urlFieldId === 'webhookUrl1' && responseData && responseData.status === 'success') {
-                    console.log('성공 응답 감지:', urlFieldId);
-                    handleMakeComSuccess(responseData);
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
                     
-                    // 웹훅 2 호출은 여기에 배치
-                    setTimeout(() => {
-                        sendWebhookWithProductNameOnly('webhookUrl2');
-                    }, 1000);
-                } else if (responseData && responseData.status === 'error') {
-                    handleMakeComError(responseData);
-                    // 에러 시 웹훅 2 호출하지 않음
-                }
-            } catch (e) {
-                message += `\n응답 내용: ${text}`;
-                console.log('JSON 파싱 오류:', e, 'Original text:', text);
-            }
-        }
-        
-        saveToHistory({
-            url: url,
-            webhookType: webhookLabel,
-            method: 'POST',
-            data: JSON.stringify(discordMessage),
-            status: response.status,
-            success: success,
-            timestamp: new Date().toISOString(),
-            duration: duration,
-            response: responseData
-        });
-        
-        addLogEntry(message, success ? 'success' : 'error');
-    });
-})
+                    const success = response.ok;
+                    
+                    return response.text().then(text => {
+                        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
+                        let responseData = null;
+                        
+                        if (text) {
+                            try {
+                                responseData = JSON.parse(text);
+                                console.log('Buffer 응답 데이터:', responseData);
+                                
+                                const formattedResponse = formatResponseMessage(responseData);
+                                if (formattedResponse) {
+                                    message += `\n${formattedResponse}`;
+                                }
+                                
+                                if (responseData && responseData.status === 'success') {
+                                    handleMakeComSuccess(responseData);
+                                } else if (responseData && responseData.status === 'error') {
+                                    handleMakeComError(responseData);
+                                }
+                            } catch (e) {
+                                message += `\n응답 내용: ${text}`;
+                                console.log('JSON 파싱 오류:', e, 'Original text:', text);
+                            }
+                        }
+                        
+                        saveToHistory({
+                            url: url,
+                            webhookType: webhookLabel + ' (제품명만 전송)',
+                            method: 'POST',
+                            data: JSON.stringify(simpleMessage),
+                            status: response.status,
+                            success: success,
+                            timestamp: new Date().toISOString(),
+                            duration: duration,
+                            response: responseData,
+                            productName: productName
+                        });
+                        
+                        addLogEntry(message, success ? 'success' : 'error');
+                    });
+                })
                 .catch(error => {
                     const endTime = Date.now();
                     const duration = endTime - startTime;
@@ -1016,9 +1009,16 @@
                                 if (responseData && responseData.status === 'success') {
                                     console.log('성공 응답 감지:', urlFieldId);
                                     handleMakeComSuccess(responseData);
+                                    
+                                    if (urlFieldId === 'webhookUrl1') {
+                                        console.log('웹훅 1 성공, 웹훅 2 자동 전송 준비...');
+                                        addLogEntry(`웹훅 1 성공, 웹훅 2 (Buffer) 자동 전송 시작...`, 'info');
+                                        
+                                        // 웹훅 2는 제품명만 전송
+                                        sendWebhookWithProductNameOnly('webhookUrl2');
+                                    }
                                 } else if (responseData && responseData.status === 'error') {
                                     handleMakeComError(responseData);
-                                }
                                 }
                             } catch (e) {
                                 message += `\n응답 내용: ${text}`;
