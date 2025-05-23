@@ -362,7 +362,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.2-memory</strong> by IdeaForest24
+        <strong>v1.0.3-memory</strong> by IdeaForest24
     </div>
 
     <script>
@@ -372,7 +372,7 @@
         let sendHistory = [];
         
         // 앱 버전 정보
-        const APP_VERSION = "v1.0.2-memory";
+        const APP_VERSION = "v1.0.3-memory";
         
         // 메모리 기반 저장소 (localStorage 대체)
         const memoryStorage = {
@@ -1009,16 +1009,9 @@
                                 if (responseData && responseData.status === 'success') {
                                     console.log('성공 응답 감지:', urlFieldId);
                                     handleMakeComSuccess(responseData);
-                                    
-                                    if (urlFieldId === 'webhookUrl1') {
-                                        console.log('웹훅 1 성공, 웹훅 2 자동 전송 준비...');
-                                        addLogEntry(`웹훅 1 성공, 웹훅 2 (Buffer) 자동 전송 시작...`, 'info');
-                                        
-                                        // 웹훅 2는 제품명만 전송
-                                        sendWebhookWithProductNameOnly('webhookUrl2');
-                                    }
                                 } else if (responseData && responseData.status === 'error') {
                                     handleMakeComError(responseData);
+                                }
                                 }
                             } catch (e) {
                                 message += `\n응답 내용: ${text}`;
