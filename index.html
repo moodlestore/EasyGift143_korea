@@ -943,7 +943,7 @@
             }
         }
 
-       // 수정된 sendWebhook 함수 - 디버깅 강화
+       // 수정된 sendWebhook 함수 - 간단한 success/error 처리
         function sendWebhook(urlFieldId) {
             try {
                 const url = document.getElementById(urlFieldId).value.trim();
@@ -1014,28 +1014,26 @@
                                 
                                 // JSON 파싱 실패 시에도 success 체크 시도
                                 if (text.includes('success') || text.includes('"status":"success"')) {
-                                    console.log('텍스트에서 success 발견, 웹훅 2 호출 시도');
+                                    console.log('텍스트에서 success 발견');
                                     responseData = { status: 'success', message: '텍스트 파싱을 통한 성공 감지' };
                                 }
                             }
                         }
                         
-                        // 성공 처리 및 웹훅 2 자동 호출
+                        // 웹훅 1에서 success 응답 받으면 즉시 웹훅 2 전송
                         if (responseData && responseData.status === 'success' && urlFieldId === 'webhookUrl1') {
-                            console.log('웹훅 1 성공 확인, 웹훅 2 호출 준비');
-                            addLogEntry(`✅ 웹훅 1 성공! 2초 후 웹훅 2 (Buffer) 자동 전송...`, 'success');
+                            console.log('Make.com 워크플로우 완료! 웹훅 2 전송 시작');
+                            addLogEntry(`🎉 Make.com 워크플로우 완료! 웹훅 2 (Buffer) 전송 시작...`, 'success');
                             
-                            // 2초 지연 후 웹훅 2 호출
-                            setTimeout(() => {
-                                console.log('웹훅 2 호출 시작');
-                                sendWebhookWithProductNameOnly('webhookUrl2');
-                            }, 2000);
+                            // 즉시 웹훅 2 호출
+                            sendWebhookWithProductNameOnly('webhookUrl2');
                             
                         } else if (responseData && responseData.status === 'error') {
+                            console.log('Make.com에서 에러 응답:', responseData.message);
                             handleMakeComError(responseData);
                         }
                         
-                        // 일반 성공 처리
+                        // 일반 성공/에러 처리
                         if (responseData && responseData.status === 'success') {
                             handleMakeComSuccess(responseData);
                         }
