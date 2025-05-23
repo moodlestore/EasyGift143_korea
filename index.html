@@ -163,6 +163,9 @@
             overflow-y: auto;
             border: 1px solid #e1e5e9;
             background: #f8f9fa;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
         }
         .success { 
             background: #d4edda; 
@@ -196,6 +199,32 @@
             font-size: 12px;
             margin-left: 10px;
         }
+        .webhook-buttons {
+            margin-bottom: 15px;
+        }
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .log-entry.success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .log-entry.error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .log-entry.info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+        .log-timestamp {
+            color: #666;
+            font-size: 11px;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -213,12 +242,20 @@
             <div class="section">
                 <h2>🔗 웹훅 URL 설정</h2>
                 <div class="form-group">
-                    <label for="webhookUrl">웹훅 URL:</label>
+                    <label for="webhookUrl1">웹훅 1 - Airtable 데이터 전송:</label>
                     <div class="url-input-group">
-                        <input type="text" id="webhookUrl" placeholder="https://hook.us1.make.com/your-webhook-id">
-                        <button onclick="saveWebhookUrl()">SAVE</button>
+                        <input type="text" id="webhookUrl1" placeholder="https://hook.us1.make.com/airtable-webhook-id">
+                        <button onclick="saveWebhookUrl('webhookUrl1')">저장</button>
                     </div>
-                    <span id="savedIndicator" class="saved-indicator" style="display: none;">✅ 저장됨</span>
+                    <span id="savedIndicator1" class="saved-indicator" style="display: none;">✅ 저장됨</span>
+                </div>
+                <div class="form-group">
+                    <label for="webhookUrl2">웹훅 2 - Airtable → Buffer 전송:</label>
+                    <div class="url-input-group">
+                        <input type="text" id="webhookUrl2" placeholder="https://hook.us1.make.com/buffer-webhook-id">
+                        <button onclick="saveWebhookUrl('webhookUrl2')">저장</button>
+                    </div>
+                    <span id="savedIndicator2" class="saved-indicator" style="display: none;">✅ 저장됨</span>
                 </div>
             </div>
 
@@ -288,10 +325,10 @@
                 <div id="jsonPreview" class="preview-area">JSON 생성 버튼을 클릭하세요</div>
             </div>
 
-            <!-- 4. 전송 -->
+            <!-- 4. 전송 (수정된 부분 - 통합 로그 영역) -->
             <div class="section">
                 <h2>🚀 전송</h2>
-                <button onclick="sendWebhook()">웹훅 전송</button>
+                <button onclick="startTransferProcess()">제품 정보 전송하기</button>
                 <div id="result"></div>
             </div>
         </div>
@@ -308,17 +345,7 @@
     </div>
 
     <script>
-        // 템플릿 데이터 (먼저 정의)
-        const templates = {
-            textOnly: "[제품명]애플 에어팟 프로 3세대\n[제품가격]359,000원\n[제품정보]최신 액티브 노이즈 캔슬링 기술이 적용된 프리미엄 무선 이어폰입니다. 공간 음향 기능과 적응형 EQ로 개인 맞춤형 청취 경험을 제공합니다.\n[고객리뷰]음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요. 장시간 착용해도 편안합니다.\n[구매링크]https://partners.coupang.com/products/12345\n[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
-            postImage: "포스팅 이미지 업로드 테스트",
-            infoImages: "정보 이미지들 업로드 테스트",
-            complete: "[제품명]삼성 갤럭시 버즈3 프로\n[제품가격]299,000원\n[제품정보]360도 오디오 기술과 AI 기반 노이즈 캔슬링을 탑재한 프리미엄 무선 이어폰입니다.\n[고객리뷰]통화 품질이 정말 좋고, 배터리 지속시간도 만족스럽습니다.\n[구매링크]https://partners.coupang.com/products/67890\n[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
-            posting: "#포스팅",
-            template: "템플릿"
-        };
-
-        // 저장된 데이터 (templates 정의 후)
+        // 저장된 데이터
         let postFiles = [];
         let infoFiles = [];
         let sendHistory = [];
@@ -350,6 +377,79 @@
             }
         }
 
+        // 로그 출력 함수
+        function addLogEntry(message, type) {
+            const resultDiv = document.getElementById('result');
+            const timestamp = new Date().toLocaleTimeString('ko-KR');
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            logEntry.innerHTML = `
+                <div class="log-timestamp">[${timestamp}]</div>
+                <div>${message.replace(/\n/g, '<br>')}</div>
+            `;
+            
+            resultDiv.appendChild(logEntry);
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+
+        // 웹훅 레이블 가져오기
+        function getWebhookLabel(urlFieldId) {
+            return urlFieldId === 'webhookUrl1' ? '웹훅 1 (Airtable)' : '웹훅 2 (Buffer)';
+        }
+
+        // 웹훅 URL 저장
+        function saveWebhookUrl(urlFieldId) {
+            const url = document.getElementById(urlFieldId).value.trim();
+            const indicatorId = urlFieldId.replace('webhookUrl', 'savedIndicator');
+            
+            if (url) {
+                if (safeSetLocalStorage(urlFieldId, url)) {
+                    showSavedIndicator(indicatorId);
+                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL이 저장되었습니다.`, 'success');
+                } else {
+                    showSavedIndicator(indicatorId);
+                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL이 설정되었습니다. (임시 세션)`, 'success');
+                }
+            } else {
+                addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력해주세요.`, 'error');
+            }
+        }
+
+        // 저장 표시기 표시
+        function showSavedIndicator(indicatorId) {
+            const indicator = document.getElementById(indicatorId);
+            if (indicator) {
+                indicator.style.display = 'inline';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 탭 전환
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 해당 이벤트 발생한 요소 찾기
+            let activeTab = null;
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+                    activeTab = tab;
+                }
+            });
+            
+            if (activeTab) activeTab.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'history') {
+                cleanupOldHistory();
+                displayHistory();
+            }
+        }
+
         // 1일 지난 기록 자동 삭제
         function cleanupOldHistory() {
             const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000); // 24시간 전
@@ -364,62 +464,7 @@
             }
         }
 
-        // 초기화
-        try {
-            sendHistory = JSON.parse(safeGetLocalStorage('webhookHistory', '[]'));
-            cleanupOldHistory(); // 페이지 로드 시 오래된 기록 정리
-        } catch (e) {
-            sendHistory = [];
-        }
-
-        // 페이지 로드 시 저장된 URL 로드
-        window.addEventListener('load', function() {
-            const savedUrl = safeGetLocalStorage('webhookUrl', '');
-            if (savedUrl && savedUrl !== '[]') {
-                document.getElementById('webhookUrl').value = savedUrl;
-                showSavedIndicator();
-            }
-            setupFileHandlers();
-        });
-
-        function switchTab(tabName) {
-            // 모든 탭 비활성화
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // 선택된 탭 활성화
-            event.target.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-            
-            if (tabName === 'history') {
-                cleanupOldHistory(); // 기록 탭 열 때 정리
-                displayHistory();
-            }
-        }
-
-        function saveWebhookUrl() {
-            const url = document.getElementById('webhookUrl').value.trim();
-            if (url) {
-                if (safeSetLocalStorage('webhookUrl', url)) {
-                    showSavedIndicator();
-                    showResult('웹훅 URL이 저장되었습니다.', 'success');
-                } else {
-                    showSavedIndicator(); // 시각적 피드백은 유지
-                    showResult('웹훅 URL이 설정되었습니다. (임시 세션)', 'success');
-                }
-            } else {
-                showResult('웹훅 URL을 입력해주세요.', 'error');
-            }
-        }
-
-        function showSavedIndicator() {
-            const indicator = document.getElementById('savedIndicator');
-            indicator.style.display = 'inline';
-            setTimeout(() => {
-                indicator.style.display = 'none';
-            }, 3000);
-        }
-
+        // 파일 핸들러 설정
         function setupFileHandlers() {
             const postFileInput = document.getElementById('postFileInput');
             const infoFileInput = document.getElementById('infoFileInput');
@@ -434,14 +479,12 @@
         }
 
         function handlePostFiles(files) {
-            // 포스팅 이미지는 1개만
             if (files.length > 1) {
-                showResult('포스팅 이미지는 1개만 업로드할 수 있습니다.', 'error');
+                addLogEntry('포스팅 이미지는 1개만 업로드할 수 있습니다.', 'error');
                 return;
             }
             postFiles = Array.from(files);
             
-            // 파일을 Base64로 변환
             postFiles.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -453,14 +496,12 @@
         }
 
         function handleInfoFiles(files) {
-            // 정보 이미지는 최대 4개
             if (files.length > 4) {
-                showResult('정보 이미지는 최대 4개까지 업로드할 수 있습니다.', 'error');
+                addLogEntry('정보 이미지는 최대 4개까지 업로드할 수 있습니다.', 'error');
                 return;
             }
             infoFiles = Array.from(files);
             
-            // 파일을 Base64로 변환
             infoFiles.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -485,7 +526,7 @@
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
                 fileItem.innerHTML = `
-                    <span>${file.name} (${formatFileSize(file.size)}) ${file.isSimulated ? '(시뮬레이션)' : ''}</span>
+                    <span>${file.name} (${formatFileSize(file.size)})</span>
                     <button class="remove-file" onclick="removePostFile(${index})">삭제</button>
                 `;
                 fileList.appendChild(fileItem);
@@ -506,7 +547,7 @@
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
                 fileItem.innerHTML = `
-                    <span>${file.name} (${formatFileSize(file.size)}) ${file.isSimulated ? '(시뮬레이션)' : ''}</span>
+                    <span>${file.name} (${formatFileSize(file.size)})</span>
                     <button class="remove-file" onclick="removeInfoFile(${index})">삭제</button>
                 `;
                 fileList.appendChild(fileItem);
@@ -547,7 +588,6 @@
         function generatePreview() {
             const content = buildMessageContent();
             
-            // 모든 파일을 하나의 배열로 합치기 (info 파일 먼저)
             const allFiles = [...infoFiles, ...postFiles];
             
             const discordMessage = {
@@ -562,11 +602,9 @@
                     id: `img${index.toString().padStart(3, '0')}`,
                     filename: file.name,
                     size: file.size,
-                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : 'data:' + file.type + ';base64,' + (file.base64Data ? file.base64Data.split(',')[1] : ''),
+                    url: null,
                     content_type: file.type || 'image/png',
-                    base64: file.base64Data ? file.base64Data.split(',')[1] : null,
-                    // 디버깅용 추가 정보
-                    originalBase64: file.base64Data || null
+                    base64: file.base64Data ? file.base64Data.split(',')[1] : null
                 }))
             };
 
@@ -598,19 +636,35 @@
             document.getElementById('jsonPreview').textContent = 'JSON 생성 버튼을 클릭하세요';
         }
 
-        function sendWebhook() {
-            const url = document.getElementById('webhookUrl').value.trim();
-            const content = buildMessageContent();
+        function startTransferProcess() {
+            const url1 = document.getElementById('webhookUrl1').value.trim();
+            const url2 = document.getElementById('webhookUrl2').value.trim();
             
-            if (!url) {
-                showResult('웹훅 URL을 입력하고 저장해주세요.', 'error');
+            if (!url1) {
+                addLogEntry(`웹훅 1 (Airtable) URL을 입력하고 저장해주세요.`, 'error');
                 return;
             }
 
-            // 모든 파일을 하나의 배열로 합치기 (info 파일 먼저)
+            if (!url2) {
+                addLogEntry(`웹훅 2 (Buffer) URL을 입력하고 저장해주세요.`, 'error');
+                return;
+            }
+
+            addLogEntry(`전송 프로세스 시작...`, 'info');
+            sendWebhook('webhookUrl1');
+        }
+
+        function sendWebhook(urlFieldId) {
+            const url = document.getElementById(urlFieldId).value.trim();
+            const content = buildMessageContent();
+            
+            if (!url) {
+                addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력하고 저장해주세요.`, 'error');
+                return;
+            }
+
             const allFiles = [...infoFiles, ...postFiles];
 
-            // JSON 데이터 생성
             const discordMessage = {
                 content: content,
                 author: {
@@ -623,15 +677,16 @@
                     id: `img${index.toString().padStart(3, '0')}`,
                     filename: file.name,
                     size: file.size,
-                    url: file.isSimulated ? `https://cdn.discordapp.com/attachments/example/${file.name}` : null,
+                    url: null,
                     content_type: file.type || 'image/png',
                     base64: file.base64Data ? file.base64Data.split(',')[1] : null,
-                    is_local_file: !file.isSimulated
+                    is_local_file: true
                 }))
             };
 
             const startTime = Date.now();
-            appendToResultLog('🚀 전송 시작...', 'info');
+            const webhookLabel = getWebhookLabel(urlFieldId);
+            addLogEntry(`${webhookLabel} 전송 중...`, 'info');
 
             fetch(url, {
                 method: 'POST',
@@ -645,41 +700,42 @@
                 const duration = endTime - startTime;
                 
                 const success = response.ok;
-                const status = `상태: ${response.status} ${response.statusText}`;
-                const timing = `응답 시간: ${duration}ms`;
                 
                 return response.text().then(text => {
-                    // 기본 정보를 정돈된 형태로 구성
-                    let message = `🌐 상태: ${response.status} ${response.statusText}\n⏱️ 응답 시간: ${duration}ms`;
+                    let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
                     let responseData = null;
                     
-                    // Make.com 응답 처리
                     if (text) {
                         try {
                             responseData = JSON.parse(text);
                             
-                            // 정돈된 응답 메시지 추가
                             const formattedResponse = formatResponseMessage(responseData);
                             if (formattedResponse) {
                                 message += `\n${formattedResponse}`;
                             }
                             
-                            // Make.com 작업 완료 처리 (알림은 별도로)
                             if (responseData.status === 'success') {
                                 handleMakeComSuccess(responseData);
+                                
+                                // 웹훅 1이 성공했고, 지금이 첫 번째 웹훅이라면 두 번째 웹훅 자동 전송
+                                if (urlFieldId === 'webhookUrl1') {
+                                    setTimeout(() => {
+                                        addLogEntry(`웹훅 1 성공, 웹훅 2 (Buffer) 자동 전송 시작...`, 'info');
+                                        sendWebhook('webhookUrl2');
+                                    }, 1000); // 1초 딜레이 후 두 번째 웹훅 전송
+                                }
                             } else if (responseData.status === 'error') {
                                 handleMakeComError(responseData);
                             }
                         } catch (e) {
-                            // JSON 파싱 실패 시 원본 텍스트 표시
-                            message += `\n📝 응답 내용: ${text}`;
+                            message += `\n응답 내용: ${text}`;
                             console.log('JSON 파싱 오류:', e, 'Original text:', text);
                         }
                     }
                     
-                    // 기록 저장
                     saveToHistory({
                         url: url,
+                        webhookType: webhookLabel,
                         method: 'POST',
                         data: JSON.stringify(discordMessage),
                         status: response.status,
@@ -689,18 +745,18 @@
                         response: responseData
                     });
                     
-                    // 로그 스타일로 누적 표시
-                    appendToResultLog(message, success ? 'success' : 'error');
+                    addLogEntry(message, success ? 'success' : 'error');
                 });
             })
             .catch(error => {
                 const endTime = Date.now();
                 const duration = endTime - startTime;
                 
-                const errorMessage = `❌ 상태: 네트워크 오류\n📝 메시지: ${error.message}\n⏱️ 응답 시간: ${duration}ms`;
+                const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
                 
                 saveToHistory({
                     url: url,
+                    webhookType: webhookLabel,
                     method: 'POST',
                     data: JSON.stringify(discordMessage),
                     error: error.message,
@@ -709,14 +765,8 @@
                     duration: duration
                 });
                 
-                appendToResultLog(errorMessage, 'error');
+                addLogEntry(errorMessage, 'error');
             });
-        }
-
-        function showResult(message, type) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.className = type;
-            resultDiv.innerHTML = `<div>${message.replace(/\n/g, '<br>')}</div>`;
         }
 
         function formatResponseMessage(responseData) {
@@ -748,40 +798,6 @@
             }
             
             return formatted.trim();
-        }
-
-        function appendToResultLog(message, type) {
-            const resultDiv = document.getElementById('result');
-            const timestamp = new Date().toLocaleTimeString('ko-KR');
-            
-            // 새로운 로그 엔트리 생성
-            const logEntry = document.createElement('div');
-            logEntry.style.cssText = `
-                margin-bottom: 15px;
-                padding: 12px;
-                border-radius: 6px;
-                border-left: 4px solid ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
-                background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
-                font-family: 'Courier New', monospace;
-                font-size: 13px;
-                line-height: 1.4;
-            `;
-            
-            logEntry.innerHTML = `
-                <div style="color: #666; font-size: 11px; margin-bottom: 5px;">[${timestamp}]</div>
-                <div>${message.replace(/\n/g, '<br>')}</div>
-            `;
-            
-            // 결과 영역에 추가 (누적)
-            if (resultDiv.children.length === 0) {
-                resultDiv.className = '';
-                resultDiv.innerHTML = '';
-            }
-            
-            resultDiv.appendChild(logEntry);
-            
-            // 스크롤을 최신 로그로 이동
-            resultDiv.scrollTop = resultDiv.scrollHeight;
         }
 
         function saveToHistory(record) {
@@ -822,11 +838,12 @@
                 const statusClass = record.success ? 'success' : 'error';
                 const status = record.error ? `오류: ${record.error}` : `응답: ${record.status}`;
                 const productName = record.productName || '상품명 없음';
+                const webhookType = record.webhookType || '웹훅';
                 
                 html += `
                     <div class="file-item" style="padding: 10px; margin-bottom: 5px; background: ${record.success ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
                         <div>
-                            <strong>${record.method}</strong> - ${timestamp} (${timeAgo})
+                            <strong>${webhookType}</strong> - ${timestamp} (${timeAgo})
                             <br><strong>상품:</strong> ${productName}
                             <br>URL: ${record.url.substring(0, 60)}...
                             <br>${status} (${record.duration}ms)
@@ -852,7 +869,7 @@
             sendHistory = [];
             safeRemoveLocalStorage('webhookHistory');
             displayHistory();
-            showResult('전송 기록이 삭제되었습니다.', 'info');
+            addLogEntry('전송 기록이 삭제되었습니다.', 'info');
         }
 
         // Make.com 작업 완료 처리 함수들
@@ -954,14 +971,29 @@
             }, 5000);
         }
 
-        function loadTemplate(templateName) {
-            // 더 이상 사용하지 않는 함수이지만 호환성을 위해 유지
-            clearAllFields();
-        }
+        // 페이지 로드 시 저장된 URL 로드
+        window.addEventListener('load', function() {
+            const savedUrl1 = safeGetLocalStorage('webhookUrl1', '');
+            const savedUrl2 = safeGetLocalStorage('webhookUrl2', '');
+            
+            if (savedUrl1 && savedUrl1 !== '[]') {
+                document.getElementById('webhookUrl1').value = savedUrl1;
+                showSavedIndicator('savedIndicator1');
+            }
+            if (savedUrl2 && savedUrl2 !== '[]') {
+                document.getElementById('webhookUrl2').value = savedUrl2;
+                showSavedIndicator('savedIndicator2');
+            }
 
-        function simulateFile(filename) {
-            // 더 이상 사용하지 않는 함수이지만 호환성을 위해 유지
-        }
+            try {
+                sendHistory = JSON.parse(safeGetLocalStorage('webhookHistory', '[]'));
+                cleanupOldHistory();
+            } catch (e) {
+                sendHistory = [];
+            }
+            
+            setupFileHandlers();
+        });
     </script>
 </body>
 </html>
