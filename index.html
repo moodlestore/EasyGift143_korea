@@ -362,7 +362,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.7-memory</strong> by IdeaForest24
+        <strong>v1.0.8-memory</strong> by IdeaForest24
     </div>
 
     <script>
@@ -1012,10 +1012,24 @@
                                 console.log('JSON 파싱 실패:', e);
                                 message += `\n응답 내용: ${text}`;
                                 
-                                // JSON 파싱 실패 시에도 success 체크 시도
+                                // JSON 파싱 실패 시에도 success와 Product_ID 체크 시도
                                 if (text.includes('success') || text.includes('"status":"success"')) {
                                     console.log('텍스트에서 success 발견');
-                                    responseData = { status: 'success', message: '텍스트 파싱을 통한 성공 감지' };
+                                    
+                                    // Product_ID 정규식으로 추출
+                                    const productIdMatch = text.match(/"Product_ID":\s*([^,}]+)/);
+                                    let extractedProductId = null;
+                                    
+                                    if (productIdMatch) {
+                                        extractedProductId = productIdMatch[1].trim().replace(/"/g, '');
+                                        console.log('추출된 Product_ID:', extractedProductId);
+                                    }
+                                    
+                                    responseData = { 
+                                        status: 'success', 
+                                        message: '텍스트 파싱을 통한 성공 감지',
+                                        Product_ID: extractedProductId
+                                    };
                                 }
                             }
                         }
@@ -1112,8 +1126,8 @@
             }
         }
 
-        // 수정된 sendWebhookWithProductNameOnly 함수 - Product_ID 전송
-        function sendWebhookWithProductNameOnly(urlFieldId, productId = null) {
+        // 수정된 sendWebhookWithProductNameOnly 함수 - Product_ID만 전송
+        function sendWebhookWithProductNameOnly(urlFieldId, productId) {
             try {
                 console.log(`웹훅 2 함수 호출됨: ${urlFieldId}, Product_ID: ${productId}`);
                 
@@ -1124,22 +1138,14 @@
                     return;
                 }
 
-                // Product_ID가 있으면 사용하고, 없으면 제품명 사용
-                let contentToSend;
-                if (productId) {
-                    contentToSend = `[Product_ID]${productId}`;
-                } else {
-                    const productName = document.getElementById('productName').value.trim();
-                    if (!productName) {
-                        addLogEntry(`제품명이 없습니다. 제품명을 입력해주세요.`, 'error');
-                        return;
-                    }
-                    contentToSend = `[제품명]${productName}`;
+                if (!productId) {
+                    addLogEntry(`Product_ID가 없습니다. 웹훅 2 전송을 중단합니다.`, 'error');
+                    return;
                 }
 
-                // 간소화된 메시지 구성
+                // Product_ID로 메시지 구성
                 const simpleMessage = {
-                    content: contentToSend,
+                    content: `[Product_ID]${productId}`,
                     author: {
                         id: "123456789",
                         username: "testuser", 
@@ -1152,8 +1158,8 @@
                 const startTime = Date.now();
                 const webhookLabel = getWebhookLabel(urlFieldId);
                 
-                console.log(`웹훅 2 전송 시작: ${url}, 내용: ${contentToSend}`);
-                addLogEntry(`${webhookLabel} 전송 중... (${productId ? `Product_ID: ${productId}` : `제품명: ${productName}`})`, 'info');
+                console.log(`웹훅 2 전송 시작: ${url}, Product_ID: ${productId}`);
+                addLogEntry(`${webhookLabel} 전송 중... (Product_ID: ${productId})`, 'info');
 
                 fetch(url, {
                     method: 'POST',
@@ -1172,11 +1178,10 @@
                         console.log(`웹훅 2 응답 텍스트: "${text}"`);
                         
                         let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
-                        let responseData = null;
                         
                         if (text) {
                             try {
-                                responseData = JSON.parse(text);
+                                const responseData = JSON.parse(text);
                                 console.log('웹훅 2 파싱된 응답:', responseData);
                                 
                                 const formattedResponse = formatResponseMessage(responseData);
@@ -1205,15 +1210,15 @@
                         
                         saveToHistory({
                             url: url,
-                            webhookType: webhookLabel + (productId ? ' (Product_ID 전송)' : ' (제품명 전송)'),
+                            webhookType: webhookLabel + ' (Product_ID 전송)',
                             method: 'POST',
                             data: JSON.stringify(simpleMessage),
                             status: response.status,
                             success: response.ok,
                             timestamp: new Date().toISOString(),
                             duration: duration,
-                            response: responseData,
-                            productName: productId || document.getElementById('productName').value.trim()
+                            response: text,
+                            productName: productId
                         });
                         
                         addLogEntry(message, response.ok ? 'success' : 'error');
@@ -1229,14 +1234,14 @@
                     
                     saveToHistory({
                         url: url,
-                        webhookType: webhookLabel + (productId ? ' (Product_ID 전송)' : ' (제품명 전송)'),
+                        webhookType: webhookLabel + ' (Product_ID 전송)',
                         method: 'POST',
                         data: JSON.stringify(simpleMessage),
                         error: error.message,
                         success: false,
                         timestamp: new Date().toISOString(),
                         duration: duration,
-                        productName: productId || document.getElementById('productName').value.trim()
+                        productName: productId
                     });
                     
                     addLogEntry(errorMessage, 'error');
