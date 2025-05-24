@@ -1023,10 +1023,36 @@
                         // 웹훅 1에서 success 응답 받으면 즉시 웹훅 2 전송
                         if (responseData && responseData.status === 'success' && urlFieldId === 'webhookUrl1') {
                             console.log('Make.com 워크플로우 완료! 웹훅 2 전송 시작');
+                            
+                            // 먼저 웹훅 1 성공 로그를 출력하고
+                            addLogEntry(message, response.ok ? 'success' : 'error');
+                            
+                            // 그 다음에 웹훅 2 시작 메시지 출력
                             addLogEntry(`🎉 Make.com 워크플로우 완료! 웹훅 2 (Buffer) 전송 시작...`, 'success');
                             
                             // 즉시 웹훅 2 호출
                             sendWebhookWithProductNameOnly('webhookUrl2');
+                            
+                            // 일반 성공 처리
+                            if (responseData && responseData.status === 'success') {
+                                handleMakeComSuccess(responseData);
+                            }
+                            
+                            // 히스토리 저장
+                            saveToHistory({
+                                url: url,
+                                webhookType: webhookLabel,
+                                method: 'POST',
+                                data: JSON.stringify(discordMessage),
+                                status: response.status,
+                                success: response.ok,
+                                timestamp: new Date().toISOString(),
+                                duration: duration,
+                                response: responseData
+                            });
+                            
+                            // 이미 처리했으므로 return으로 중복 처리 방지
+                            return;
                             
                         } else if (responseData && responseData.status === 'error') {
                             console.log('Make.com에서 에러 응답:', responseData.message);
