@@ -1030,10 +1030,13 @@
                             // 그 다음에 웹훅 2 지연 시작 메시지 출력
                             addLogEntry(`🎉 Make.com 워크플로우 완료! 3초 후 웹훅 2 (Buffer) 전송...`, 'success');
                             
-                            // 3초 지연 후 웹훅 2 호출
+                            // 3초 지연 후 웹훅 2 호출 (Product_ID 전달)
                             setTimeout(() => {
                                 addLogEntry(`🚀 웹훅 2 (Buffer) 전송 시작...`, 'info');
-                                sendWebhookWithProductNameOnly('webhookUrl2');
+                                
+                                // Product_ID 추출해서 전달
+                                const productId = responseData.Product_ID || null;
+                                sendWebhookWithProductNameOnly('webhookUrl2', productId);
                             }, 3000); // 3초 대기
                             
                             // 일반 성공 처리
@@ -1109,10 +1112,10 @@
             }
         }
 
-        // 수정된 sendWebhookWithProductNameOnly 함수 - 디버깅 강화
-        function sendWebhookWithProductNameOnly(urlFieldId) {
+        // 수정된 sendWebhookWithProductNameOnly 함수 - Product_ID 전송
+        function sendWebhookWithProductNameOnly(urlFieldId, productId = null) {
             try {
-                console.log(`웹훅 2 함수 호출됨: ${urlFieldId}`);
+                console.log(`웹훅 2 함수 호출됨: ${urlFieldId}, Product_ID: ${productId}`);
                 
                 const url = document.getElementById(urlFieldId).value.trim();
                 
@@ -1121,17 +1124,22 @@
                     return;
                 }
 
-                // 제품명만 추출
-                const productName = document.getElementById('productName').value.trim();
-                
-                if (!productName) {
-                    addLogEntry(`제품명이 없습니다. 제품명을 입력해주세요.`, 'error');
-                    return;
+                // Product_ID가 있으면 사용하고, 없으면 제품명 사용
+                let contentToSend;
+                if (productId) {
+                    contentToSend = `[Product_ID]${productId}`;
+                } else {
+                    const productName = document.getElementById('productName').value.trim();
+                    if (!productName) {
+                        addLogEntry(`제품명이 없습니다. 제품명을 입력해주세요.`, 'error');
+                        return;
+                    }
+                    contentToSend = `[제품명]${productName}`;
                 }
 
                 // 간소화된 메시지 구성
                 const simpleMessage = {
-                    content: `[제품명]${productName}`,
+                    content: contentToSend,
                     author: {
                         id: "123456789",
                         username: "testuser", 
@@ -1144,8 +1152,8 @@
                 const startTime = Date.now();
                 const webhookLabel = getWebhookLabel(urlFieldId);
                 
-                console.log(`웹훅 2 전송 시작: ${url}`);
-                addLogEntry(`${webhookLabel} 전송 중... (제품명: ${productName})`, 'info');
+                console.log(`웹훅 2 전송 시작: ${url}, 내용: ${contentToSend}`);
+                addLogEntry(`${webhookLabel} 전송 중... (${productId ? `Product_ID: ${productId}` : `제품명: ${productName}`})`, 'info');
 
                 fetch(url, {
                     method: 'POST',
@@ -1197,7 +1205,7 @@
                         
                         saveToHistory({
                             url: url,
-                            webhookType: webhookLabel + ' (제품명만 전송)',
+                            webhookType: webhookLabel + (productId ? ' (Product_ID 전송)' : ' (제품명 전송)'),
                             method: 'POST',
                             data: JSON.stringify(simpleMessage),
                             status: response.status,
@@ -1205,7 +1213,7 @@
                             timestamp: new Date().toISOString(),
                             duration: duration,
                             response: responseData,
-                            productName: productName
+                            productName: productId || document.getElementById('productName').value.trim()
                         });
                         
                         addLogEntry(message, response.ok ? 'success' : 'error');
@@ -1221,14 +1229,14 @@
                     
                     saveToHistory({
                         url: url,
-                        webhookType: webhookLabel + ' (제품명만 전송)',
+                        webhookType: webhookLabel + (productId ? ' (Product_ID 전송)' : ' (제품명 전송)'),
                         method: 'POST',
                         data: JSON.stringify(simpleMessage),
                         error: error.message,
                         success: false,
                         timestamp: new Date().toISOString(),
                         duration: duration,
-                        productName: productName
+                        productName: productId || document.getElementById('productName').value.trim()
                     });
                     
                     addLogEntry(errorMessage, 'error');
@@ -1238,7 +1246,6 @@
                 addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
             }
         }
-
         // 수정된 sendWebhookWithProductNameOnly 함수 - 디버깅 강화
         function sendWebhookWithProductNameOnly(urlFieldId) {
             try {
