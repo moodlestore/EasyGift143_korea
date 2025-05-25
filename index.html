@@ -365,7 +365,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.1.4-memory</strong> by IdeaForest24
+        <strong>v1.1.5-memory</strong> by IdeaForest24
     </div>
 
     <script>
@@ -396,31 +396,32 @@
         // 안전한 저장소 접근 함수
         function safeGetStorage(key, defaultValue = '[]') {
             try {
-                return memoryStorage.getItem(key) || defaultValue;
+                return localStorage.getItem(key) || defaultValue;
             } catch (e) {
                 console.log('저장소 읽기 오류:', e);
-                return defaultValue;
+                return memoryStorage.getItem(key) || defaultValue;
             }
         }
 
         function safeSetStorage(key, value) {
             try {
-                return memoryStorage.setItem(key, value);
+                localStorage.setItem(key, value);
+                return true;
             } catch (e) {
                 console.log('저장소 쓰기 오류:', e);
-                return false;
+                return memoryStorage.setItem(key, value);
             }
         }
 
         function safeRemoveStorage(key) {
             try {
-                return memoryStorage.removeItem(key);
+                localStorage.removeItem(key);
+                return true;
             } catch (e) {
                 console.log('저장소 삭제 오류:', e);
-                return false;
+                return memoryStorage.removeItem(key);
             }
         }
-
         // 초기화 - 페이지 로드 시 실행
         function initializeApp() {
             try {
