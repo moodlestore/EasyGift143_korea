@@ -377,7 +377,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.1</strong> by IdeaForest24
+        <strong>v1.0.2-improved</strong> by IdeaForest24
     </div>
 
     <script>
@@ -1167,21 +1167,24 @@
                                     addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
                                 } else {
                                     // 단일 응답인 경우
-                                    const formattedResponse = formatResponseMessage(response);
+                                    const formattedResponse = formatResponseMessage(responseData);
                                     if (formattedResponse) {
                                         message += `\n${formattedResponse}`;
                                     }
                                     
-                                    // Final success/error 체크로 변경
+                                    // Final success/error 정확한 문자열 비교
                                     if (responseData && responseData.status === 'Final success') {
+                                        console.log('Final success 감지!'); // 디버깅용
                                         isProcessComplete = true;
                                         addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
                                         handleMakeComSuccess(responseData);
                                     } else if (responseData && responseData.status === 'Final error') {
+                                        console.log('Final error 감지!'); // 디버깅용
                                         isProcessComplete = true;
                                         handleMakeComError(responseData);
                                     } else if (responseData && (responseData.status === 'success' || responseData.status === 'error')) {
                                         // 중간 단계 success/error는 로그만 출력하고 프로세스 계속 진행
+                                        console.log('중간 응답 감지:', responseData.status); // 디버깅용
                                         addLogEntry(`📨 중간 응답: ${responseData.message || responseData.status}`, responseData.status === 'success' ? 'success' : 'error');
                                     }
                                 }
