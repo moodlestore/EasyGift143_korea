@@ -377,7 +377,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.3-improved</strong> by IdeaForest24
+        <strong>v2.0.0</strong> by IdeaForest24
     </div>
 
     <script>
@@ -388,7 +388,7 @@
         let isTransferInProgress = false; // 전송 중 상태 추적
         
         // 앱 버전 정보
-        const APP_VERSION = "v1.2.0-improved";
+        const APP_VERSION = "v1.2.1-fixed";
         
         // 메모리 기반 저장소 (localStorage 대체)
         const memoryStorage = {
@@ -973,7 +973,7 @@
                             }
                         }
                         
-                        // 웹훅 1에서 success 응답 받으면 1초 지연 후 웹훅 2 전송
+                        // 웹훅 1에서 success 응답 받으면 3초 지연 후 웹훅 2 전송
                         if (responseData && responseData.status === 'success' && urlFieldId === 'webhookUrl1') {
                             console.log('Make.com 워크플로우 완료! 웹훅 2 전송 시작');
                             
@@ -1023,11 +1023,11 @@
                             // 이미 처리했으므로 return으로 중복 처리 방지
                             return;
                             
-                       else if (responseData && responseData.status === 'error') {
-    console.log('Make.com에서 에러 응답:', responseData.message);
-    handleMakeComError(responseData);
-    // error여도 프로세스 계속 진행 (Final error가 아니므로)
-}
+                        } else if (responseData && responseData.status === 'error') {
+                            console.log('Make.com에서 에러 응답:', responseData.message);
+                            handleMakeComError(responseData);
+                            // 웹훅 1에서 error도 프로세스 계속 진행 (수정됨)
+                        }
                         
                         // 일반 성공/에러 처리
                         if (responseData && responseData.status === 'success') {
@@ -1048,7 +1048,7 @@
                         
                         addLogEntry(message, response.ok ? 'success' : 'error');
                         
-                        // 웹훅 1이 실패한 경우 필드 다시 활성화
+                        // 웹훅 1이 실패한 경우만 필드 다시 활성화
                         if (!response.ok) {
                             isTransferInProgress = false;
                             toggleFormFields(false);
@@ -1089,7 +1089,7 @@
             }
         }
 
-        // 웹훅 2 전송 함수 - Product_ID만 전송 + 모든 응답 받기
+        // 웹훅 2 전송 함수 - Product_ID만 전송 + Final success 처리 수정
         function sendWebhookWithProductID(urlFieldId, productId) {
             try {
                 console.log(`웹훅 2 함수 호출됨: ${urlFieldId}, Product_ID: ${productId}`);
@@ -1136,113 +1136,139 @@
                     body: JSON.stringify(simpleMessage)
                 })
                 .then(response => {
-    const endTime = Date.now();
-    const duration = endTime - startTime;
-    
-    console.log(`🔍 웹훅 2 응답 상태: ${response.status}`);
-    console.log(`🔍 응답 헤더:`, response.headers.get('content-type'));
-    
-    return response.text().then(text => {
-        console.log(`🔍 웹훅 2 원본 응답: "${text}"`);
-        console.log(`🔍 응답 길이: ${text.length}`);
-        
-        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
-        let isProcessComplete = false;
-        
-        if (text) {
-            try {
-                // JSON 파싱 시도
-                const responseData = JSON.parse(text);
-                console.log('✅ 웹훅 2 JSON 파싱 성공:', responseData);
-                console.log('🔍 status 값:', responseData.status);
-                
-                // 배열 응답인 경우 (여러 응답이 한 번에 온 경우)
-                if (Array.isArray(responseData)) {
-                    responseData.forEach((response, index) => {
-                        const formattedResponse = formatResponseMessage(response);
-                        if (formattedResponse) {
-                            addLogEntry(`📨 응답 ${index + 1}:\n${formattedResponse}`, 'info');
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+                    
+                    console.log(`🔍 웹훅 2 응답 상태: ${response.status}`);
+                    console.log(`🔍 응답 헤더:`, response.headers.get('content-type'));
+                    
+                    return response.text().then(text => {
+                        console.log(`🔍 웹훅 2 원본 응답: "${text}"`);
+                        console.log(`🔍 응답 길이: ${text.length}`);
+                        
+                        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
+                        let isProcessComplete = false;
+                        
+                        if (text) {
+                            try {
+                                // JSON 파싱 시도
+                                const responseData = JSON.parse(text);
+                                console.log('✅ 웹훅 2 JSON 파싱 성공:', responseData);
+                                console.log('🔍 status 값:', responseData.status);
+                                
+                                // 배열 응답인 경우 (여러 응답이 한 번에 온 경우)
+                                if (Array.isArray(responseData)) {
+                                    responseData.forEach((response, index) => {
+                                        const formattedResponse = formatResponseMessage(response);
+                                        if (formattedResponse) {
+                                            addLogEntry(`📨 응답 ${index + 1}:\n${formattedResponse}`, 'info');
+                                        }
+                                    });
+                                    isProcessComplete = true;
+                                    addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
+                                } else {
+                                    // 단일 응답인 경우
+                                    const formattedResponse = formatResponseMessage(responseData);
+                                    if (formattedResponse) {
+                                        message += `\n${formattedResponse}`;
+                                    }
+                                    
+                                    // Final success/error 정확한 문자열 비교
+                                    if (responseData && responseData.status === 'Final success') {
+                                        console.log('🎉 Final success 감지됨!');
+                                        isProcessComplete = true;
+                                        addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
+                                        handleMakeComSuccess(responseData);
+                                    } else if (responseData && responseData.status === 'Final error') {
+                                        console.log('❌ Final error 감지됨!');
+                                        isProcessComplete = true;
+                                        handleMakeComError(responseData);
+                                    } else if (responseData && (responseData.status === 'success' || responseData.status === 'error')) {
+                                        // 중간 단계 success/error는 로그만 출력하고 프로세스 계속 진행
+                                        console.log('📨 중간 응답 감지:', responseData.status);
+                                        addLogEntry(`📨 중간 응답: ${responseData.message || responseData.status}`, responseData.status === 'success' ? 'success' : 'error');
+                                    }
+                                }
+                            } catch (e) {
+                                // JSON 파싱 실패 시
+                                console.log(`❌ JSON 파싱 실패:`, e);
+                                console.log(`🔍 파싱 실패한 텍스트: "${text}"`);
+                                
+                                // Make.com에서 단순 문자열 응답을 보내는 경우 처리
+                                if (text === "Accepted" || text.includes("Accepted")) {
+                                    console.log('📨 웹훅 2 수신 확인: "Accepted"');
+                                    message += `\n✅ 상태: Make.com에서 정상 수신됨`;
+                                    addLogEntry(message, 'success');
+                                    addLogEntry(`⏳ Make.com 워크플로우 처리 중... Final success 대기`, 'info');
+                                    
+                                    // 30초 타임아웃 (Final success를 기다림)
+                                    setTimeout(() => {
+                                        if (!isProcessComplete) {
+                                            addLogEntry(`⚠️ 타임아웃: Final success를 받지 못했습니다`, 'error');
+                                            isTransferInProgress = false;
+                                            toggleFormFields(false);
+                                        }
+                                    }, 30000);
+                                    
+                                    // return 제거! - Final success를 기다려야 함
+                                } else {
+                                    console.log('🔍 예상치 못한 응답:', text);
+                                    message += `\n응답 내용: ${text}`;
+                                    isProcessComplete = true;
+                                }
+                            }
+                        } else {
+                            isProcessComplete = true;
                         }
-                    });
-                    isProcessComplete = true;
-                    addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
-                } else {
-                    // 단일 응답인 경우
-                    const formattedResponse = formatResponseMessage(responseData);
-                    if (formattedResponse) {
-                        message += `\n${formattedResponse}`;
-                    }
-                    
-                    // Final success/error 정확한 문자열 비교
-                    if (responseData && responseData.status === 'Final success') {
-                        console.log('🎉 Final success 감지됨!');
-                        isProcessComplete = true;
-                        addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
-                        handleMakeComSuccess(responseData);
-                    } else if (responseData && responseData.status === 'Final error') {
-                        console.log('❌ Final error 감지됨!');
-                        isProcessComplete = true;
-                        handleMakeComError(responseData);
-                    } else if (responseData && (responseData.status === 'success' || responseData.status === 'error')) {
-                        // 중간 단계 success/error는 로그만 출력하고 프로세스 계속 진행
-                        console.log('📨 중간 응답 감지:', responseData.status);
-                        addLogEntry(`📨 중간 응답: ${responseData.message || responseData.status}`, responseData.status === 'success' ? 'success' : 'error');
-                    }
-                }
-            } catch (e) {
-                // JSON 파싱 실패 시
-                console.log(`❌ JSON 파싱 실패:`, e);
-                console.log(`🔍 파싱 실패한 텍스트: "${text}"`);
-                
-                // Make.com에서 단순 문자열 응답을 보내는 경우 처리
-                if (text === "Accepted" || text.includes("Accepted")) {
-                    console.log('📨 웹훅 2 수신 확인: "Accepted"');
-                    message += `\n✅ 상태: Make.com에서 정상 수신됨`;
-                    addLogEntry(message, 'success');
-                    addLogEntry(`⏳ Make.com 워크플로우 처리 중... Final success 대기`, 'info');
-                    
-                    // 30초 타임아웃 (Final success를 기다림)
-                    setTimeout(() => {
-                        if (!isProcessComplete) {
-                            addLogEntry(`⚠️ 타임아웃: Final success를 받지 못했습니다`, 'error');
+                        
+                        saveToHistory({
+                            url: url,
+                            webhookType: webhookLabel + ' (Product_ID 전송)',
+                            method: 'POST',
+                            data: JSON.stringify(simpleMessage),
+                            status: response.status,
+                            success: response.ok,
+                            timestamp: new Date().toISOString(),
+                            duration: duration,
+                            response: text,
+                            productName: productId
+                        });
+                        
+                        addLogEntry(message, response.ok ? 'success' : 'error');
+                        
+                        // 프로세스 완료 시 필드 다시 활성화
+                        if (isProcessComplete) {
                             isTransferInProgress = false;
                             toggleFormFields(false);
                         }
-                    }, 30000);
+                    });
+                })
+                .catch(error => {
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
                     
-                    // return 제거! - Final success를 기다려야 함
-                } else {
-                    console.log('🔍 예상치 못한 응답:', text);
-                    message += `\n응답 내용: ${text}`;
-                    isProcessComplete = true;
-                }
-            }
-        } else {
-            isProcessComplete = true;
-        }
-        
-        saveToHistory({
-            url: url,
-            webhookType: webhookLabel + ' (Product_ID 전송)',
-            method: 'POST',
-            data: JSON.stringify(simpleMessage),
-            status: response.status,
-            success: response.ok,
-            timestamp: new Date().toISOString(),
-            duration: duration,
-            response: text,
-            productName: productId
-        });
-        
-        addLogEntry(message, response.ok ? 'success' : 'error');
-        
-        // 프로세스 완료 시 필드 다시 활성화
-        if (isProcessComplete) {
-            isTransferInProgress = false;
-            toggleFormFields(false);
-        }
-    });
-})
+                    console.log('웹훅 2 전송 오류:', error);
+                    
+                    const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
+                    
+                    saveToHistory({
+                        url: url,
+                        webhookType: webhookLabel + ' (Product_ID 전송)',
+                        method: 'POST',
+                        data: JSON.stringify(simpleMessage),
+                        error: error.message,
+                        success: false,
+                        timestamp: new Date().toISOString(),
+                        duration: duration,
+                        productName: productId
+                    });
+                    
+                    addLogEntry(errorMessage, 'error');
+                    
+                    // 오류 발생 시 필드 다시 활성화
+                    isTransferInProgress = false;
+                    toggleFormFields(false);
+                });
             } catch (e) {
                 console.log('웹훅 2 전송 오류:', e);
                 addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
