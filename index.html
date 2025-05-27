@@ -93,6 +93,10 @@
             outline: none;
             border-color: #667eea;
         }
+        input:disabled, textarea:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
         .url-input-group {
             display: flex;
             gap: 10px;
@@ -120,8 +124,17 @@
         button:hover {
             transform: translateY(-2px);
         }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
         button.secondary {
             background: #6c757d;
+        }
+        button.clear-all {
+            background: #dc3545;
+            margin-bottom: 20px;
         }
         .file-upload-area {
             border: 2px dashed #667eea;
@@ -187,18 +200,6 @@
             color: #0c5460; 
             border: 1px solid #bee5eb; 
         }
-        .preview-area {
-            background: #f8f9fa;
-            border: 1px solid #e1e5e9;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            white-space: pre-wrap;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
         .saved-indicator {
             color: #28a745;
             font-size: 12px;
@@ -244,6 +245,22 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             z-index: 1000;
         }
+
+        /* 로딩 상태 */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -281,6 +298,9 @@
             <!-- 2. 데이터 입력 -->
             <div class="section">
                 <h2>📝 데이터 입력</h2>
+                
+                <!-- 전체 초기화 버튼을 상단으로 이동 -->
+                <button class="clear-all" onclick="clearAll()">🗑️ 전체 초기화</button>
 
                 <!-- 개별 텍스트 필드들 -->
                 <div class="form-group">
@@ -336,18 +356,10 @@
                 </div>
             </div>
 
-            <!-- 3. JSON 미리보기 -->
-            <div class="section">
-                <h2>👀 JSON 미리보기</h2>
-                <button onclick="generatePreview()">JSON 생성</button>
-                <button class="secondary" onclick="clearAll()">전체 초기화</button>
-                <div id="jsonPreview" class="preview-area">JSON 생성 버튼을 클릭하세요</div>
-            </div>
-
-            <!-- 4. 전송 (수정된 부분 - 통합 로그 영역) -->
+            <!-- 3. 전송 -->
             <div class="section">
                 <h2>🚀 전송</h2>
-                <button onclick="startTransferProcess()">제품 정보 전송하기</button>
+                <button id="sendButton" onclick="startTransferProcess()">제품 정보 전송하기</button>
                 <div id="result"></div>
             </div>
         </div>
@@ -365,7 +377,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.1.5-memory</strong> by IdeaForest24
+        <strong>v1.2.0-improved</strong> by IdeaForest24
     </div>
 
     <script>
@@ -373,9 +385,10 @@
         let postFiles = [];
         let infoFiles = [];
         let sendHistory = [];
+        let isTransferInProgress = false; // 전송 중 상태 추적
         
         // 앱 버전 정보
-        const APP_VERSION = "v1.1.1-memory";
+        const APP_VERSION = "v1.2.0-improved";
         
         // 메모리 기반 저장소 (localStorage 대체)
         const memoryStorage = {
@@ -422,6 +435,43 @@
                 return memoryStorage.removeItem(key);
             }
         }
+
+        // 입력 필드 비활성화/활성화 함수
+        function toggleFormFields(disabled) {
+            try {
+                const fields = [
+                    'productName', 'productPrice', 'productInfo', 
+                    'customerReview', 'affiliateLink', 'affiliateNotice'
+                ];
+                
+                fields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.disabled = disabled;
+                    }
+                });
+
+                // 파일 업로드 버튼들도 비활성화
+                const fileButtons = document.querySelectorAll('.file-upload-area button');
+                fileButtons.forEach(button => {
+                    button.disabled = disabled;
+                });
+
+                // 전송 버튼 상태 변경
+                const sendButton = document.getElementById('sendButton');
+                if (sendButton) {
+                    sendButton.disabled = disabled;
+                    if (disabled) {
+                        sendButton.innerHTML = '<span class="loading-spinner"></span>전송 중...';
+                    } else {
+                        sendButton.innerHTML = '제품 정보 전송하기';
+                    }
+                }
+            } catch (e) {
+                console.log('폼 필드 상태 변경 오류:', e);
+            }
+        }
+
         // 초기화 - 페이지 로드 시 실행
         function initializeApp() {
             try {
@@ -474,6 +524,18 @@
                 resultDiv.scrollTop = resultDiv.scrollHeight;
             } catch (e) {
                 console.log('로그 추가 오류:', e);
+            }
+        }
+
+        // 로그 영역 초기화 함수 추가
+        function clearLogArea() {
+            try {
+                const resultDiv = document.getElementById('result');
+                if (resultDiv) {
+                    resultDiv.innerHTML = '';
+                }
+            } catch (e) {
+                console.log('로그 영역 초기화 오류:', e);
             }
         }
 
@@ -744,37 +806,6 @@
             }
         }
 
-        function generatePreview() {
-            try {
-                const content = buildMessageContent();
-                
-                const allFiles = [...infoFiles, ...postFiles];
-                
-                const discordMessage = {
-                    content: content,
-                    author: {
-                        id: "123456789",
-                        username: "testuser",
-                        discriminator: "0001"
-                    },
-                    timestamp: new Date().toISOString(),
-                    attachments: allFiles.map((file, index) => ({
-                        id: `img${index.toString().padStart(3, '0')}`,
-                        filename: file.name,
-                        size: file.size,
-                        url: null,
-                        content_type: file.type || 'image/png',
-                        base64: file.base64Data ? file.base64Data.split(',')[1] : null
-                    }))
-                };
-
-                document.getElementById('jsonPreview').textContent = JSON.stringify(discordMessage, null, 2);
-            } catch (e) {
-                console.log('JSON 미리보기 생성 오류:', e);
-                addLogEntry('JSON 미리보기 생성 중 오류가 발생했습니다.', 'error');
-            }
-        }
-
         function buildMessageContent() {
             try {
                 let content = '';
@@ -800,10 +831,12 @@
             }
         }
 
+        // 전체 초기화 함수 수정 - 로그 영역도 초기화
         function clearAll() {
             try {
                 clearAllFields();
-                document.getElementById('jsonPreview').textContent = 'JSON 생성 버튼을 클릭하세요';
+                clearLogArea(); // 로그 영역도 초기화
+                addLogEntry('전체 초기화가 완료되었습니다.', 'info');
             } catch (e) {
                 console.log('전체 초기화 오류:', e);
             }
@@ -811,6 +844,11 @@
 
         function startTransferProcess() {
             try {
+                if (isTransferInProgress) {
+                    addLogEntry('이미 전송이 진행 중입니다. 잠시만 기다려주세요.', 'error');
+                    return;
+                }
+
                 const url1 = document.getElementById('webhookUrl1').value.trim();
                 const url2 = document.getElementById('webhookUrl2').value.trim();
                 
@@ -824,11 +862,18 @@
                     return;
                 }
 
+                // 전송 시작 시 필드 비활성화
+                isTransferInProgress = true;
+                toggleFormFields(true);
+
                 addLogEntry(`전송 프로세스 시작...`, 'info');
                 sendWebhook('webhookUrl1');
             } catch (e) {
                 console.log('전송 프로세스 시작 오류:', e);
                 addLogEntry(`전송 프로세스 시작 중 오류가 발생했습니다: ${e.message}`, 'error');
+                // 오류 발생 시 필드 다시 활성화
+                isTransferInProgress = false;
+                toggleFormFields(false);
             }
         }
 
@@ -840,6 +885,8 @@
                 
                 if (!url) {
                     addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력하고 저장해주세요.`, 'error');
+                    isTransferInProgress = false;
+                    toggleFormFields(false);
                     return;
                 }
 
@@ -925,7 +972,7 @@
                             }
                         }
                         
-                        // 웹훅 1에서 success 응답 받으면 3초 지연 후 웹훅 2 전송
+                        // 웹훅 1에서 success 응답 받으면 1초 지연 후 웹훅 2 전송 (3초에서 1초로 단축)
                         if (responseData && responseData.status === 'success' && urlFieldId === 'webhookUrl1') {
                             console.log('Make.com 워크플로우 완료! 웹훅 2 전송 시작');
                             
@@ -933,9 +980,9 @@
                             addLogEntry(message, response.ok ? 'success' : 'error');
                             
                             // 그 다음에 웹훅 2 지연 시작 메시지 출력
-                            addLogEntry(`🎉 Make.com 워크플로우 완료! 3초 후 웹훅 2 (Buffer) 전송...`, 'success');
+                            addLogEntry(`🎉 Make.com 워크플로우 완료! 1초 후 웹훅 2 (Buffer) 전송...`, 'success');
                             
-                            // 3초 지연 후 웹훅 2 호출 (Product_ID 전달)
+                            // 1초 지연 후 웹훅 2 호출 (Product_ID 전달)
                             setTimeout(() => {
                                 addLogEntry(`🚀 웹훅 2 (Buffer) 전송 시작...`, 'info');
                                 
@@ -948,8 +995,11 @@
                                 } else {
                                     addLogEntry(`❌ Product_ID를 찾을 수 없어서 웹훅 2 전송을 중단합니다.`, 'error');
                                     console.log('responseData:', responseData);
+                                    // 실패 시 필드 다시 활성화
+                                    isTransferInProgress = false;
+                                    toggleFormFields(false);
                                 }
-                            }, 3000); // 3초 대기
+                            }, 1000); // 1초 대기 (3초에서 변경)
                             
                             // 일반 성공 처리
                             if (responseData && responseData.status === 'success') {
@@ -975,6 +1025,9 @@
                         } else if (responseData && responseData.status === 'error') {
                             console.log('Make.com에서 에러 응답:', responseData.message);
                             handleMakeComError(responseData);
+                            // 오류 시 필드 다시 활성화
+                            isTransferInProgress = false;
+                            toggleFormFields(false);
                         }
                         
                         // 일반 성공/에러 처리
@@ -995,6 +1048,12 @@
                         });
                         
                         addLogEntry(message, response.ok ? 'success' : 'error');
+                        
+                        // 웹훅 1이 실패한 경우 필드 다시 활성화
+                        if (!response.ok) {
+                            isTransferInProgress = false;
+                            toggleFormFields(false);
+                        }
                     });
                 })
                 .catch(error => {
@@ -1017,14 +1076,21 @@
                     });
                     
                     addLogEntry(errorMessage, 'error');
+                    
+                    // 오류 발생 시 필드 다시 활성화
+                    isTransferInProgress = false;
+                    toggleFormFields(false);
                 });
             } catch (e) {
                 console.log('웹훅 전송 오류:', e);
                 addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
+                // 오류 발생 시 필드 다시 활성화
+                isTransferInProgress = false;
+                toggleFormFields(false);
             }
         }
 
-        // 웹훅 2 전송 함수 - Product_ID만 전송
+        // 웹훅 2 전송 함수 - Product_ID만 전송 + 모든 응답 받기
         function sendWebhookWithProductID(urlFieldId, productId) {
             try {
                 console.log(`웹훅 2 함수 호출됨: ${urlFieldId}, Product_ID: ${productId}`);
@@ -1033,11 +1099,15 @@
                 
                 if (!url) {
                     addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력하고 저장해주세요.`, 'error');
+                    isTransferInProgress = false;
+                    toggleFormFields(false);
                     return;
                 }
 
                 if (!productId) {
                     addLogEntry(`Product_ID가 없습니다. 웹훅 2 전송을 중단합니다.`, 'error');
+                    isTransferInProgress = false;
+                    toggleFormFields(false);
                     return;
                 }
 
@@ -1059,6 +1129,11 @@
                 console.log(`웹훅 2 전송 시작: ${url}, Product_ID: ${productId}`);
                 addLogEntry(`${webhookLabel} 전송 중... (Product_ID: ${productId})`, 'info');
 
+                // 응답 처리 개선 - 여러 응답을 받을 수 있도록 수정
+                let responseCount = 0;
+                const maxResponses = 3; // 최대 3개 응답 대기
+                let allResponses = [];
+
                 fetch(url, {
                     method: 'POST',
                     headers: {
@@ -1076,34 +1151,67 @@
                         console.log(`웹훅 2 응답 텍스트: "${text}"`);
                         
                         let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
+                        let isProcessComplete = false;
                         
                         if (text) {
                             try {
+                                // JSON 파싱 시도
                                 const responseData = JSON.parse(text);
                                 console.log('웹훅 2 파싱된 응답:', responseData);
                                 
-                                const formattedResponse = formatResponseMessage(responseData);
-                                if (formattedResponse) {
-                                    message += `\n${formattedResponse}`;
-                                }
-                                
-                                if (responseData && responseData.status === 'success') {
-                                    addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
-                                    handleMakeComSuccess(responseData);
-                                } else if (responseData && responseData.status === 'error') {
-                                    handleMakeComError(responseData);
+                                // 배열 응답인 경우 (여러 응답이 한 번에 온 경우)
+                                if (Array.isArray(responseData)) {
+                                    responseData.forEach((response, index) => {
+                                        const formattedResponse = formatResponseMessage(response);
+                                        if (formattedResponse) {
+                                            addLogEntry(`📨 응답 ${index + 1}:\n${formattedResponse}`, 'info');
+                                        }
+                                    });
+                                    isProcessComplete = true;
+                                } else {
+                                    // 단일 응답인 경우
+                                    const formattedResponse = formatResponseMessage(responseData);
+                                    if (formattedResponse) {
+                                        message += `\n${formattedResponse}`;
+                                    }
+                                    
+                                    if (responseData && responseData.status === 'success') {
+                                        isProcessComplete = true;
+                                        addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
+                                        handleMakeComSuccess(responseData);
+                                    } else if (responseData && responseData.status === 'error') {
+                                        isProcessComplete = true;
+                                        handleMakeComError(responseData);
+                                    }
                                 }
                             } catch (e) {
                                 // Make.com에서 단순 문자열 응답을 보내는 경우 처리
                                 if (text === "Accepted" || text.includes("Accepted")) {
                                     console.log('웹훅 2 정상 수신 확인: "Accepted"');
                                     message += `\n✅ 상태: Make.com에서 정상 수신됨`;
-                                    addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
+                                    
+                                    // Accepted 응답 후 추가 응답 대기
+                                    addLogEntry(message, 'success');
+                                    addLogEntry(`⏳ Make.com 워크플로우 처리 중... 추가 응답 대기`, 'info');
+                                    
+                                    // 5초 후에도 추가 응답이 없으면 완료 처리
+                                    setTimeout(() => {
+                                        if (!isProcessComplete) {
+                                            addLogEntry(`🎉 전체 프로세스 완료! (타임아웃)`, 'success');
+                                            isTransferInProgress = false;
+                                            toggleFormFields(false);
+                                        }
+                                    }, 5000);
+                                    
+                                    return; // 추가 처리 없이 대기
                                 } else {
                                     console.log('웹훅 2 예상치 못한 응답:', text);
                                     message += `\n응답 내용: ${text}`;
+                                    isProcessComplete = true;
                                 }
                             }
+                        } else {
+                            isProcessComplete = true;
                         }
                         
                         saveToHistory({
@@ -1120,6 +1228,12 @@
                         });
                         
                         addLogEntry(message, response.ok ? 'success' : 'error');
+                        
+                        // 프로세스 완료 시 필드 다시 활성화
+                        if (isProcessComplete) {
+                            isTransferInProgress = false;
+                            toggleFormFields(false);
+                        }
                     });
                 })
                 .catch(error => {
@@ -1143,10 +1257,17 @@
                     });
                     
                     addLogEntry(errorMessage, 'error');
+                    
+                    // 오류 발생 시 필드 다시 활성화
+                    isTransferInProgress = false;
+                    toggleFormFields(false);
                 });
             } catch (e) {
                 console.log('웹훅 2 전송 오류:', e);
                 addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
+                // 오류 발생 시 필드 다시 활성화
+                isTransferInProgress = false;
+                toggleFormFields(false);
             }
         }
 
@@ -1339,64 +1460,4 @@
                 notification.id = 'makeComNotification';
                 notification.style.cssText = `
                     position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    max-width: 300px;
-                    padding: 15px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                    z-index: 1000;
-                    background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
-                    border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
-                    color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
-                    animation: slideIn 0.3s ease-out;
-                `;
-                
-                notification.innerHTML = `
-                    <strong>${title}</strong><br>
-                    <span style="font-size: 14px;">${message}</span>
-                    <button onclick="this.parentElement.remove()" style="
-                        position: absolute;
-                        top: 5px;
-                        right: 8px;
-                        background: none;
-                        border: none;
-                        font-size: 16px;
-                        cursor: pointer;
-                        color: inherit;
-                        margin: 0;
-                        padding: 0;
-                    ">×</button>
-                `;
-                
-                // CSS 애니메이션 추가
-                if (!document.querySelector('#notificationStyles')) {
-                    const style = document.createElement('style');
-                    style.id = 'notificationStyles';
-                    style.textContent = `
-                        @keyframes slideIn {
-                            from { transform: translateX(100%); opacity: 0; }
-                            to { transform: translateX(0); opacity: 1; }
-                        }
-                    `;
-                    document.head.appendChild(style);
-                }
-                
-                document.body.appendChild(notification);
-                
-                // 5초 후 자동 제거
-                setTimeout(() => {
-                    if (notification.parentElement) {
-                        notification.remove();
-                    }
-                }, 5000);
-            } catch (e) {
-                console.log('알림 표시 오류:', e);
-            }
-        }
-
-        // 페이지 로드 시 앱 초기화
-        window.addEventListener('load', initializeApp);
-    </script>
-</body>
-</html>
+                    top:
