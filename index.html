@@ -377,7 +377,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.0</strong> by IdeaForest24
+        <strong>v1.0.1</strong> by IdeaForest24
     </div>
 
     <script>
@@ -817,12 +817,13 @@
                 const affiliateLink = document.getElementById('affiliateLink').value.trim();
                 const affiliateNotice = document.getElementById('affiliateNotice').value.trim();
                 
-                if (productName) content += `[제품명]${productName}\n`;
-                if (productPrice) content += `[제품가격]${productPrice}\n`;
-                if (productInfo) content += `[제품정보]${productInfo}\n`;
-                if (customerReview) content += `[고객리뷰]${customerReview}\n`;
-                if (affiliateLink) content += `[구매링크]${affiliateLink}\n`;
-                if (affiliateNotice) content += `[대가성문구]${affiliateNotice}\n`;
+                // 빈 필드도 포함하여 모든 필드를 항상 전송 (Make.com 파싱 안정성을 위해)
+                content += `[제품명]${productName}\n`;
+                content += `[제품가격]${productPrice}\n`;
+                content += `[제품정보]${productInfo}\n`;
+                content += `[고객리뷰]${customerReview}\n`;
+                content += `[구매링크]${affiliateLink}\n`;
+                content += `[대가성문구]${affiliateNotice}\n`;
                 
                 return content.trim();
             } catch (e) {
