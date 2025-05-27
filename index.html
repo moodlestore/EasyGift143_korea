@@ -1166,18 +1166,22 @@
                                     addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
                                 } else {
                                     // 단일 응답인 경우
-                                    const formattedResponse = formatResponseMessage(responseData);
+                                    const formattedResponse = formatResponseMessage(response);
                                     if (formattedResponse) {
                                         message += `\n${formattedResponse}`;
                                     }
                                     
-                                    if (responseData && responseData.status === 'success') {
+                                    // Final success/error 체크로 변경
+                                    if (responseData && responseData.status === 'Final success') {
                                         isProcessComplete = true;
                                         addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
                                         handleMakeComSuccess(responseData);
-                                    } else if (responseData && responseData.status === 'error') {
+                                    } else if (responseData && responseData.status === 'Final error') {
                                         isProcessComplete = true;
                                         handleMakeComError(responseData);
+                                    } else if (responseData && (responseData.status === 'success' || responseData.status === 'error')) {
+                                        // 중간 단계 success/error는 로그만 출력하고 프로세스 계속 진행
+                                        addLogEntry(`📨 중간 응답: ${responseData.message || responseData.status}`, responseData.status === 'success' ? 'success' : 'error');
                                     }
                                 }
                             } catch (e) {
@@ -1186,16 +1190,16 @@
                                     console.log('웹훅 2 정상 수신 확인: "Accepted"');
                                     message += `\n✅ 상태: Make.com에서 정상 수신됨`;
                                     addLogEntry(message, 'success');
-                                    addLogEntry(`⏳ Make.com 워크플로우 처리 중... 추가 응답 대기`, 'info');
+                                    addLogEntry(`⏳ Make.com 워크플로우 처리 중... 모든 플랫폼 응답 대기 (Final success까지)`, 'info');
                                     
-                                    // 5초 후에도 추가 응답이 없으면 완료 처리
+                                    // 30초 후에도 Final success가 없으면 타임아웃 처리
                                     setTimeout(() => {
                                         if (!isProcessComplete) {
-                                            addLogEntry(`🎉 전체 프로세스 완료! (타임아웃)`, 'success');
+                                            addLogEntry(`⚠️ 타임아웃: Final success를 받지 못했지만 프로세스를 종료합니다`, 'error');
                                             isTransferInProgress = false;
                                             toggleFormFields(false);
                                         }
-                                    }, 5000);
+                                    }, 30000); // 30초 타임아웃
                                     
                                     return; // 추가 처리 없이 대기
                                 } else {
