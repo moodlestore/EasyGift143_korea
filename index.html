@@ -567,6 +567,29 @@
             }
         }
 
+        // 웹훅 URL 저장
+        function saveWebhookUrl(urlFieldId) {
+            try {
+                const url = document.getElementById(urlFieldId).value.trim();
+                const indicatorId = urlFieldId.replace('webhookUrl', 'savedIndicator');
+                
+                if (url) {
+                    if (safeSetStorage(urlFieldId, url)) {
+                        showSavedIndicator(indicatorId);
+                        addLogEntry(`${getWebhookLabel(urlFieldId)} URL이 저장되었습니다.`, 'success');
+                    } else {
+                        showSavedIndicator(indicatorId);
+                        addLogEntry(`${getWebhookLabel(urlFieldId)} URL이 설정되었습니다. (임시 세션)`, 'success');
+                    }
+                } else {
+                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력해주세요.`, 'error');
+                }
+            } catch (e) {
+                console.log('웹훅 URL 저장 오류:', e);
+                addLogEntry(`URL 저장 중 오류가 발생했습니다: ${e.message}`, 'error');
+            }
+        }
+
         // 저장 표시기 표시
         function showSavedIndicator(indicatorId) {
             try {
