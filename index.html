@@ -377,7 +377,7 @@
     
     <!-- 버전 정보 -->
     <div class="version-info">
-        <strong>v1.0.2-improved</strong> by IdeaForest24
+        <strong>v1.0.3-improved</strong> by IdeaForest24
     </div>
 
     <script>
@@ -1023,13 +1023,11 @@
                             // 이미 처리했으므로 return으로 중복 처리 방지
                             return;
                             
-                        } else if (responseData && responseData.status === 'error') {
-                            console.log('Make.com에서 에러 응답:', responseData.message);
-                            handleMakeComError(responseData);
-                            // 오류 시 필드 다시 활성화
-                            isTransferInProgress = false;
-                            toggleFormFields(false);
-                        }
+                       else if (responseData && responseData.status === 'error') {
+    console.log('Make.com에서 에러 응답:', responseData.message);
+    handleMakeComError(responseData);
+    // error여도 프로세스 계속 진행 (Final error가 아니므로)
+}
                         
                         // 일반 성공/에러 처리
                         if (responseData && responseData.status === 'success') {
@@ -1138,132 +1136,113 @@
                     body: JSON.stringify(simpleMessage)
                 })
                 .then(response => {
-                    const endTime = Date.now();
-                    const duration = endTime - startTime;
-                    
-                    console.log(`웹훅 2 응답 상태: ${response.status}`);
-                    
-                    return response.text().then(text => {
-                        console.log(`웹훅 2 응답 텍스트: "${text}"`);
-                        
-                        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
-                        let isProcessComplete = false;
-                        
-                        if (text) {
-                            try {
-                                // JSON 파싱 시도
-                                const responseData = JSON.parse(text);
-                                console.log('웹훅 2 파싱된 응답:', responseData);
-                                
-                                // 배열 응답인 경우 (여러 응답이 한 번에 온 경우)
-                                if (Array.isArray(responseData)) {
-                                    responseData.forEach((response, index) => {
-                                        const formattedResponse = formatResponseMessage(response);
-                                        if (formattedResponse) {
-                                            addLogEntry(`📨 응답 ${index + 1}:\n${formattedResponse}`, 'info');
-                                        }
-                                    });
-                                    isProcessComplete = true;
-                                    addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
-                                } else {
-                                    // 단일 응답인 경우
-                                    const formattedResponse = formatResponseMessage(responseData);
-                                    if (formattedResponse) {
-                                        message += `\n${formattedResponse}`;
-                                    }
-                                    
-                                    // Final success/error 정확한 문자열 비교
-                                    if (responseData && responseData.status === 'Final success') {
-                                        console.log('Final success 감지!'); // 디버깅용
-                                        isProcessComplete = true;
-                                        addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
-                                        handleMakeComSuccess(responseData);
-                                    } else if (responseData && responseData.status === 'Final error') {
-                                        console.log('Final error 감지!'); // 디버깅용
-                                        isProcessComplete = true;
-                                        handleMakeComError(responseData);
-                                    } else if (responseData && (responseData.status === 'success' || responseData.status === 'error')) {
-                                        // 중간 단계 success/error는 로그만 출력하고 프로세스 계속 진행
-                                        console.log('중간 응답 감지:', responseData.status); // 디버깅용
-                                        addLogEntry(`📨 중간 응답: ${responseData.message || responseData.status}`, responseData.status === 'success' ? 'success' : 'error');
-                                    }
-                                }
-                            } catch (e) {
-                                // Make.com에서 단순 문자열 응답을 보내는 경우 처리
-                                if (text === "Accepted" || text.includes("Accepted")) {
-                                    console.log('웹훅 2 정상 수신 확인: "Accepted"');
-                                    message += `\n✅ 상태: Make.com에서 정상 수신됨`;
-                                    addLogEntry(message, 'success');
-                                    addLogEntry(`⏳ Make.com 워크플로우 처리 중... 모든 플랫폼 응답 대기 (Final success까지)`, 'info');
-                                    
-                                    // 30초 후에도 Final success가 없으면 타임아웃 처리
-                                    setTimeout(() => {
-                                        if (!isProcessComplete) {
-                                            addLogEntry(`⚠️ 타임아웃: Final success를 받지 못했지만 프로세스를 종료합니다`, 'error');
-                                            isTransferInProgress = false;
-                                            toggleFormFields(false);
-                                        }
-                                    }, 30000); // 30초 타임아웃
-                                    
-                                    return; // 추가 처리 없이 대기
-                                } else {
-                                    console.log('웹훅 2 예상치 못한 응답:', text);
-                                    message += `\n응답 내용: ${text}`;
-                                    isProcessComplete = true;
-                                }
-                            }
-                        } else {
-                            isProcessComplete = true;
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    console.log(`🔍 웹훅 2 응답 상태: ${response.status}`);
+    console.log(`🔍 응답 헤더:`, response.headers.get('content-type'));
+    
+    return response.text().then(text => {
+        console.log(`🔍 웹훅 2 원본 응답: "${text}"`);
+        console.log(`🔍 응답 길이: ${text.length}`);
+        
+        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
+        let isProcessComplete = false;
+        
+        if (text) {
+            try {
+                // JSON 파싱 시도
+                const responseData = JSON.parse(text);
+                console.log('✅ 웹훅 2 JSON 파싱 성공:', responseData);
+                console.log('🔍 status 값:', responseData.status);
+                
+                // 배열 응답인 경우 (여러 응답이 한 번에 온 경우)
+                if (Array.isArray(responseData)) {
+                    responseData.forEach((response, index) => {
+                        const formattedResponse = formatResponseMessage(response);
+                        if (formattedResponse) {
+                            addLogEntry(`📨 응답 ${index + 1}:\n${formattedResponse}`, 'info');
                         }
-                        
-                        saveToHistory({
-                            url: url,
-                            webhookType: webhookLabel + ' (Product_ID 전송)',
-                            method: 'POST',
-                            data: JSON.stringify(simpleMessage),
-                            status: response.status,
-                            success: response.ok,
-                            timestamp: new Date().toISOString(),
-                            duration: duration,
-                            response: text,
-                            productName: productId
-                        });
-                        
-                        addLogEntry(message, response.ok ? 'success' : 'error');
-                        
-                        // 프로세스 완료 시 필드 다시 활성화
-                        if (isProcessComplete) {
+                    });
+                    isProcessComplete = true;
+                    addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
+                } else {
+                    // 단일 응답인 경우
+                    const formattedResponse = formatResponseMessage(responseData);
+                    if (formattedResponse) {
+                        message += `\n${formattedResponse}`;
+                    }
+                    
+                    // Final success/error 정확한 문자열 비교
+                    if (responseData && responseData.status === 'Final success') {
+                        console.log('🎉 Final success 감지됨!');
+                        isProcessComplete = true;
+                        addLogEntry(`🎉 전체 프로세스 완료! Airtable → Buffer 연동 성공`, 'success');
+                        handleMakeComSuccess(responseData);
+                    } else if (responseData && responseData.status === 'Final error') {
+                        console.log('❌ Final error 감지됨!');
+                        isProcessComplete = true;
+                        handleMakeComError(responseData);
+                    } else if (responseData && (responseData.status === 'success' || responseData.status === 'error')) {
+                        // 중간 단계 success/error는 로그만 출력하고 프로세스 계속 진행
+                        console.log('📨 중간 응답 감지:', responseData.status);
+                        addLogEntry(`📨 중간 응답: ${responseData.message || responseData.status}`, responseData.status === 'success' ? 'success' : 'error');
+                    }
+                }
+            } catch (e) {
+                // JSON 파싱 실패 시
+                console.log(`❌ JSON 파싱 실패:`, e);
+                console.log(`🔍 파싱 실패한 텍스트: "${text}"`);
+                
+                // Make.com에서 단순 문자열 응답을 보내는 경우 처리
+                if (text === "Accepted" || text.includes("Accepted")) {
+                    console.log('📨 웹훅 2 수신 확인: "Accepted"');
+                    message += `\n✅ 상태: Make.com에서 정상 수신됨`;
+                    addLogEntry(message, 'success');
+                    addLogEntry(`⏳ Make.com 워크플로우 처리 중... Final success 대기`, 'info');
+                    
+                    // 30초 타임아웃 (Final success를 기다림)
+                    setTimeout(() => {
+                        if (!isProcessComplete) {
+                            addLogEntry(`⚠️ 타임아웃: Final success를 받지 못했습니다`, 'error');
                             isTransferInProgress = false;
                             toggleFormFields(false);
                         }
-                    });
-                })
-                .catch(error => {
-                    const endTime = Date.now();
-                    const duration = endTime - startTime;
+                    }, 30000);
                     
-                    console.log('웹훅 2 전송 오류:', error);
-                    
-                    const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
-                    
-                    saveToHistory({
-                        url: url,
-                        webhookType: webhookLabel + ' (Product_ID 전송)',
-                        method: 'POST',
-                        data: JSON.stringify(simpleMessage),
-                        error: error.message,
-                        success: false,
-                        timestamp: new Date().toISOString(),
-                        duration: duration,
-                        productName: productId
-                    });
-                    
-                    addLogEntry(errorMessage, 'error');
-                    
-                    // 오류 발생 시 필드 다시 활성화
-                    isTransferInProgress = false;
-                    toggleFormFields(false);
-                });
+                    // return 제거! - Final success를 기다려야 함
+                } else {
+                    console.log('🔍 예상치 못한 응답:', text);
+                    message += `\n응답 내용: ${text}`;
+                    isProcessComplete = true;
+                }
+            }
+        } else {
+            isProcessComplete = true;
+        }
+        
+        saveToHistory({
+            url: url,
+            webhookType: webhookLabel + ' (Product_ID 전송)',
+            method: 'POST',
+            data: JSON.stringify(simpleMessage),
+            status: response.status,
+            success: response.ok,
+            timestamp: new Date().toISOString(),
+            duration: duration,
+            response: text,
+            productName: productId
+        });
+        
+        addLogEntry(message, response.ok ? 'success' : 'error');
+        
+        // 프로세스 완료 시 필드 다시 활성화
+        if (isProcessComplete) {
+            isTransferInProgress = false;
+            toggleFormFields(false);
+        }
+    });
+})
             } catch (e) {
                 console.log('웹훅 2 전송 오류:', e);
                 addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
