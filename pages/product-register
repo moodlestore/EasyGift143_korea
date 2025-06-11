@@ -1,0 +1,37 @@
+<!-- 제품 등록 페이지 (독립 실행 가능) -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EasyGift143 제품 등록</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>📝 제품 등록 도우미</h1>
+            <div>
+                <a href="../index.html" style="color: white; text-decoration: none;">← 메인으로 돌아가기</a>
+            </div>
+        </header>
+        
+        <main class="page-content">
+            <div id="productRegisterContent">
+                <!-- 여기에 제품 등록 내용이 동적으로 로드됩니다 -->
+            </div>
+        </main>
+    </div>
+    
+    <script src="../js/main.js"></script>
+    <script src="../js/product-register.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 독립 페이지로 실행될 때
+            document.getElementById('productRegisterContent').innerHTML = ProductRegister.getHTML();
+            ProductRegister.initialize();
+        });
+    </script>
+</body>
+</html>
