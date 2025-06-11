@@ -236,6 +236,6 @@ AppState.loadAppState();  // 상태 로드
 
 ---
 
-**버전**: v2.2.0-modular  
+**버전**: v3.0.0-modular  
 **최종 업데이트**: 2025년 6월  
 **개발자**: IdeaForest24
