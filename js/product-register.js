@@ -14,7 +14,7 @@ window.ProductRegister = {
                     🎬 숏폼 콘텐츠
                 </button>
                 <button class="nav-tab" data-tab="giftstory" onclick="ProductRegister.switchSubTab('giftstory')">
-                    📖 감동 선물 사연
+                    📖 감동 사연
                 </button>
             </div>
 
