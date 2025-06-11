@@ -1,1284 +1,146 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>EasyGift143 제품 등록 도우미</title>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            position: relative;
-            padding-bottom: 40px;
-        }
-        .container { 
-            max-width: 800px; 
-            margin: 0 auto; 
-            background: white; 
-            padding: 30px; 
-            border-radius: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        h1 { 
-            text-align: center; 
-            color: #333; 
-            margin-bottom: 30px;
-            font-size: 2.2em;
-        }
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        .tab {
-            padding: 12px 24px;
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-size: 16px;
-            color: #666;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            font-weight: 600;
-        }
-        .tab:hover {
-            color: #667eea;
-            background: #f8f9ff;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            background: #f8f9ff;
-        }
-        .section h2 {
-            margin: 0 0 20px 0;
-            color: #667eea;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .form-group { 
-            margin-bottom: 15px; 
-        }
-        label { 
-            display: block; 
-            margin-bottom: 8px; 
-            font-weight: 600;
-            color: #333;
-        }
-        input, textarea, select { 
-            width: 100%; 
-            padding: 12px; 
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-            box-sizing: border-box;
-        }
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        input:disabled, textarea:disabled {
-            background-color: #f5f5f5;
-            cursor: not-allowed;
-        }
-        .url-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .url-input-group input {
-            flex: 1;
-        }
-        .url-input-group button {
-            margin: 0;
-        }
-        button { 
-            padding: 12px 24px; 
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white; 
-            border: none; 
-            border-radius: 8px;
-            cursor: pointer; 
-            font-size: 16px;
-            font-weight: 600;
-            transition: transform 0.2s ease;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        button:hover {
-            transform: translateY(-2px);
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        button.secondary {
-            background: #6c757d;
-        }
-        button.clear-all {
-            background: #dc3545;
-            margin-bottom: 20px;
-        }
-        .file-upload-area {
-            border: 2px dashed #667eea;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            background: white;
-            margin-bottom: 15px;
-        }
-        .file-list {
-            background: white;
-            border: 1px solid #e1e5e9;
-            border-radius: 8px;
-            padding: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .file-item:last-child {
-            border-bottom: none;
-        }
-        .remove-file {
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 2px 8px;
-            font-size: 12px;
-            cursor: pointer;
-            margin: 0;
-        }
-        #result { 
-            margin-top: 20px; 
-            padding: 15px;
-            border-radius: 8px;
-            min-height: 50px;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #e1e5e9;
-            background: #f8f9fa;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.4;
-        }
-        .success { 
-            background: #d4edda; 
-            color: #155724; 
-            border: 1px solid #c3e6cb; 
-        }
-        .error { 
-            background: #f8d7da; 
-            color: #721c24; 
-            border: 1px solid #f5c6cb; 
-        }
-        .info { 
-            background: #d1ecf1; 
-            color: #0c5460; 
-            border: 1px solid #bee5eb; 
-        }
-        .saved-indicator {
-            color: #28a745;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        .log-entry {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .log-entry.success {
-            background-color: #d4edda;
-            border-left: 4px solid #28a745;
-        }
-        .log-entry.error {
-            background-color: #f8d7da;
-            border-left: 4px solid #dc3545;
-        }
-        .log-entry.info {
-            background-color: #d1ecf1;
-            border-left: 4px solid #17a2b8;
-        }
-        .log-timestamp {
-            color: #666;
-            font-size: 11px;
-            margin-bottom: 4px;
-            font-weight: bold;
-        }
-        
-        .version-info {
-            position: fixed;
-            bottom: 10px;
-            right: 20px;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            color: #666;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    <title>EasyGift143 통합 대시보드</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-    <div class="container">
-        <h1>🎁 EasyGift143 제품 등록 도우미</h1>
-        
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab(event, 'main')">메인</button>
-            <button class="tab" onclick="switchTab(event, 'history')">전송 기록</button>
-        </div>
-
-        <!-- 메인 탭 -->
-        <div id="main" class="tab-content active">
-            <!-- 1. 웹훅 URL 설정 -->
-            <div class="section">
-                <h2>🔗 웹훅 URL 설정</h2>
-                <div class="form-group">
-                    <label for="webhookUrl1">웹훅 1 - Airtable 데이터 전송:</label>
-                    <div class="url-input-group">
-                        <input type="text" id="webhookUrl1">
-                        <button onclick="saveWebhookUrl('webhookUrl1')">저장</button>
-                    </div>
-                    <span id="savedIndicator1" class="saved-indicator" style="display: none;">✅ 저장됨</span>
-                </div>
-                <div class="form-group">
-                    <label for="webhookUrl2">웹훅 2 - Airtable → Buffer 전송:</label>
-                    <div class="url-input-group">
-                        <input type="text" id="webhookUrl2">
-                        <button onclick="saveWebhookUrl('webhookUrl2')">저장</button>
-                    </div>
-                    <span id="savedIndicator2" class="saved-indicator" style="display: none;">✅ 저장됨</span>
-                </div>
+    <div class="dashboard-container">
+        <!-- 헤더 -->
+        <header class="dashboard-header">
+            <h1>🎁 EasyGift143 통합 대시보드</h1>
+            <div class="mode-selector">
+                <span class="mode-label" id="currentMode">Free 모드</span>
+                <button id="upgradeModeBtn" class="mode-toggle-btn" onclick="AppState.toggleMode()">
+                    Pro 모드로 업그레이드
+                </button>
             </div>
+        </header>
 
-            <!-- 2. 데이터 입력 -->
-            <div class="section">
-                <h2>📝 데이터 입력</h2>
+        <!-- 네비게이션 탭 (3개로 단순화) -->
+        <nav class="main-nav">
+            <button class="nav-tab active" data-page="product-register">
+                📝 제품 등록
+            </button>
+            <button class="nav-tab" data-page="engagement-assistant">
+                💬 SNS 성장 도우미
+            </button>
+            <button class="nav-tab disabled" data-page="analytics-dashboard" id="analyticsTab">
+                📊 분석 대시보드
+                <span class="pro-badge">PRO</span>
+            </button>
+        </nav>
+
+        <!-- 페이지 컨테이너 -->
+        <main class="page-container">
+            <div id="loading" class="loading-overlay" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>페이지를 로드하는 중...</p>
+            </div>
+            
+            <div id="page-content" class="page-content">
+                <!-- 동적 페이지 로드 영역 -->
+            </div>
+        </main>
+
+        <!-- 푸터 -->
+        <footer class="dashboard-footer">
+            <div class="version-info">
+                <strong>v3.0.0-modular</strong> by IdeaForest24
+            </div>
+            <div class="status-info">
+                <span id="connectionStatus">🟢 연결됨</span>
+                <span id="lastSync">마지막 동기화: 없음</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 모드 전환 모달 -->
+    <div id="modeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="AppState.closeModeModal()">&times;</span>
+            <h2>Pro 모드로 업그레이드</h2>
+            <div class="upgrade-info">
+                <h3>🎯 현재 수익 상태</h3>
+                <div class="revenue-display">
+                    <div class="revenue-item">
+                        <span>이번 달 어필리에이트 수익:</span>
+                        <strong id="affiliateRevenue">$0</strong>
+                    </div>
+                    <div class="revenue-item">
+                        <span>기타 수익:</span>
+                        <strong id="otherRevenue">$0</strong>
+                    </div>
+                    <div class="revenue-total">
+                        <span>총 수익:</span>
+                        <strong id="totalRevenue">$0</strong>
+                    </div>
+                </div>
                 
-                <button class="clear-all" onclick="clearAll()">🗑️ 전체 초기화</button>
-
-                <div class="form-group">
-                    <label for="productName">제품명:</label>
-                    <input type="text" id="productName" placeholder="예: 애플 에어팟 프로 3세대">
-                </div>
-
-                <div class="form-group">
-                    <label for="productPrice">제품가격:</label>
-                    <input type="text" id="productPrice" placeholder="예: 359,000원">
-                </div>
-
-                <div class="form-group">
-                    <label for="productInfo">제품정보:</label>
-                    <textarea id="productInfo" rows="10" placeholder="제품의 주요 특징과 기능을 설명해주세요"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="customerReview">고객리뷰:</label>
-                    <textarea id="customerReview" rows="10" placeholder="고객들의 후기와 평가를 입력해주세요. 여러 리뷰가 있을 경우 줄바꿈으로 구분하세요.&#10;&#10;예:&#10;음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요.&#10;장시간 착용해도 편안합니다.&#10;배터리 지속시간도 만족스럽습니다."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="affiliateLink">구매링크:</label>
-                    <textarea id="affiliateLink" rows="1" placeholder="구매 링크를 입력해주세요"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="affiliateNotice">대가성문구:</label>
-                    <textarea id="affiliateNotice" rows="1" placeholder="어필리에이트 대가성 문구를 입력해 주세요."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>정보 이미지들 (최대 4개):</label>
-                    <div class="file-upload-area">
-                        <input type="file" id="infoFileInput" multiple accept="image/*" style="display: none;">
-                        <button onclick="document.getElementById('infoFileInput').click()">정보 이미지들 선택</button>
-                        <p>info-1.png, info-2.png, info-3.png, info-4.png 파일들을 업로드하세요</p>
+                <div class="upgrade-threshold">
+                    <p><strong>Pro 모드 권장 기준:</strong> 월 $50 이상</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="revenueProgress" style="width: 0%"></div>
                     </div>
-                    <div id="infoFileList" class="file-list" style="display: none;"></div>
+                    <p id="upgradeMessage">아직 Pro 모드 권장 기준에 도달하지 않았습니다.</p>
                 </div>
 
-                <div class="form-group">
-                    <label>포스팅 이미지 (1개):</label>
-                    <div class="file-upload-area">
-                        <input type="file" id="postFileInput" accept="image/*" style="display: none;">
-                        <button onclick="document.getElementById('postFileInput').click()">포스팅 이미지 선택</button>
-                        <p>post.png 파일을 업로드하세요</p>
-                    </div>
-                    <div id="postFileList" class="file-list" style="display: none;"></div>
+                <div class="pro-features">
+                    <h3>💎 Pro 모드 기능</h3>
+                    <ul>
+                        <li>✅ Buffer Analytics API 연동</li>
+                        <li>✅ ManyChat Analytics 연동</li>
+                        <li>✅ AI 기반 맞춤 목표 설정</li>
+                        <li>✅ 실시간 성과 분석</li>
+                        <li>✅ 고급 리포팅</li>
+                    </ul>
+                    <p class="cost-info"><strong>추가 비용:</strong> $30/월 (Buffer Pro + ManyChat Pro)</p>
                 </div>
-            </div>
 
-            <!-- 3. 전송 -->
-            <div class="section">
-                <h2>🚀 전송</h2>
-                <button id="sendButton" onclick="startTransferProcess()">제품 정보 전송하기</button>
-                <div id="result"></div>
-            </div>
-        </div>
-
-        <!-- 전송 기록 탭 -->
-        <div id="history" class="tab-content">
-            <div class="section">
-                <h2>📋 전송 기록</h2>
-                <button onclick="displayHistory()">기록 새로고침</button>
-                <button class="secondary" onclick="clearHistory()">기록 삭제</button>
-                <div id="historyList" style="margin-top: 15px;"></div>
+                <div class="modal-actions">
+                    <button id="forceUpgradeBtn" class="btn-secondary" onclick="AppState.forceUpgrade()">
+                        강제 업그레이드 (테스트용)
+                    </button>
+                    <button id="upgradeBtn" class="btn-primary" onclick="AppState.upgradeMode()" disabled>
+                        Pro 모드 활성화
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- 스크립트 로드 (모듈 분리된 구조) -->
+    <script src="js/main.js"></script>
+    <script src="js/product-register.js"></script>         <!-- 메인 컨트롤러 -->
+    <script src="js/product-posting.js"></script>          <!-- 포스팅 기능 (기존 메인) -->
+    <script src="js/product-shortform.js"></script>        <!-- 숏폼 콘텐츠 (신규) -->
+    <script src="js/product-giftstory.js"></script>        <!-- 감동 선물 사연 -->
+    <script src="js/engagement-assistant.js"></script>     <!-- SNS 성장 도우미 -->
+    <script src="js/analytics.js"></script>                <!-- 분석 대시보드 -->
     
-    <!-- 버전 정보 -->
-    <div class="version-info">
-        <strong>v1.0.0</strong> by IdeaForest24
-    </div>
-
     <script>
-        // 저장된 데이터 변수 초기화
-        let postFiles = [];
-        let infoFiles = [];
-        let sendHistory = [];
-        let isTransferInProgress = false;
-        
-        // 메모리 기반 저장소 (localStorage 대체)
-        const memoryStorage = {
-            data: {},
-            getItem: function(key) {
-                return this.data[key] || null;
-            },
-            setItem: function(key, value) {
-                this.data[key] = value;
-                return true;
-            },
-            removeItem: function(key) {
-                delete this.data[key];
-                return true;
-            }
-        };
-
-        // 안전한 저장소 접근 함수
-        function safeGetStorage(key, defaultValue = '[]') {
-            try {
-                return localStorage.getItem(key) || defaultValue;
-            } catch (e) {
-                console.log('저장소 읽기 오류:', e);
-                return memoryStorage.getItem(key) || defaultValue;
-            }
-        }
-
-        function safeSetStorage(key, value) {
-            try {
-                localStorage.setItem(key, value);
-                return true;
-            } catch (e) {
-                console.log('저장소 쓰기 오류:', e);
-                return memoryStorage.setItem(key, value);
-            }
-        }
-
-        function safeRemoveStorage(key) {
-            try {
-                localStorage.removeItem(key);
-                return true;
-            } catch (e) {
-                console.log('저장소 삭제 오류:', e);
-                return memoryStorage.removeItem(key);
-            }
-        }
-
-        // 입력 필드 비활성화/활성화 함수
-        function toggleFormFields(disabled) {
-            try {
-                const fields = [
-                    'productName', 'productPrice', 'productInfo', 
-                    'customerReview', 'affiliateLink', 'affiliateNotice'
-                ];
-                
-                fields.forEach(fieldId => {
-                    const field = document.getElementById(fieldId);
-                    if (field) {
-                        field.disabled = disabled;
-                    }
-                });
-
-                // 파일 업로드 버튼들도 비활성화
-                const fileButtons = document.querySelectorAll('.file-upload-area button');
-                fileButtons.forEach(button => {
-                    button.disabled = disabled;
-                });
-
-                // 전송 버튼 상태 변경
-                const sendButton = document.getElementById('sendButton');
-                if (sendButton) {
-                    sendButton.disabled = disabled;
-                    if (disabled) {
-                        sendButton.innerHTML = '<span class="loading-spinner"></span>전송 중...';
-                    } else {
-                        sendButton.innerHTML = '제품 정보 전송하기';
-                    }
-                }
-            } catch (e) {
-                console.log('폼 필드 상태 변경 오류:', e);
-            }
-        }
-
-        // 초기화 - 페이지 로드 시 실행
-        function initializeApp() {
-            try {
-                // 저장된 웹훅 URL 불러오기
-                const savedUrl1 = safeGetStorage('webhookUrl1', '');
-                const savedUrl2 = safeGetStorage('webhookUrl2', '');
-                
-                if (savedUrl1 && savedUrl1 !== '[]') {
-                    document.getElementById('webhookUrl1').value = savedUrl1;
-                    showSavedIndicator('savedIndicator1');
-                }
-                if (savedUrl2 && savedUrl2 !== '[]') {
-                    document.getElementById('webhookUrl2').value = savedUrl2;
-                    showSavedIndicator('savedIndicator2');
-                }
-
-                // 히스토리 데이터 불러오기
-                try {
-                    const historyData = safeGetStorage('webhookHistory', '[]');
-                    if (historyData && historyData !== '[]') {
-                        sendHistory = JSON.parse(historyData);
-                    }
-                } catch (e) {
-                    console.log('히스토리 데이터 파싱 오류:', e);
-                    sendHistory = [];
-                }
-
-                // 파일 핸들러 설정
-                setupFileHandlers();
-            } catch (e) {
-                console.log('앱 초기화 오류:', e);
-            }
-        }
-
-        // 로그 출력 함수
-        function addLogEntry(message, type) {
-            try {
-                const resultDiv = document.getElementById('result');
-                const timestamp = new Date().toLocaleTimeString('ko-KR');
-                
-                const logEntry = document.createElement('div');
-                logEntry.className = `log-entry ${type}`;
-                
-                logEntry.innerHTML = `
-                    <div class="log-timestamp">[${timestamp}]</div>
-                    <div>${message.replace(/\n/g, '<br>')}</div>
-                `;
-                
-                resultDiv.appendChild(logEntry);
-                resultDiv.scrollTop = resultDiv.scrollHeight;
-            } catch (e) {
-                console.log('로그 추가 오류:', e);
-            }
-        }
-
-        // 로그 영역 초기화 함수
-        function clearLogArea() {
-            try {
-                const resultDiv = document.getElementById('result');
-                if (resultDiv) {
-                    resultDiv.innerHTML = '';
-                }
-            } catch (e) {
-                console.log('로그 영역 초기화 오류:', e);
-            }
-        }
-
-        // 웹훅 레이블 가져오기
-        function getWebhookLabel(urlFieldId) {
-            return urlFieldId === 'webhookUrl1' ? '웹훅 1 (Airtable)' : '웹훅 2 (Buffer)';
-        }
-
-        // 웹훅 URL 저장
-        function saveWebhookUrl(urlFieldId) {
-            try {
-                const url = document.getElementById(urlFieldId).value.trim();
-                const indicatorId = urlFieldId.replace('webhookUrl', 'savedIndicator');
-                
-                if (url) {
-                    if (safeSetStorage(urlFieldId, url)) {
-                        showSavedIndicator(indicatorId);
-                        addLogEntry(`${getWebhookLabel(urlFieldId)} URL이 저장되었습니다.`, 'success');
-                    } else {
-                        showSavedIndicator(indicatorId);
-                        addLogEntry(`${getWebhookLabel(urlFieldId)} URL이 설정되었습니다. (임시 세션)`, 'success');
-                    }
-                } else {
-                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력해주세요.`, 'error');
-                }
-            } catch (e) {
-                console.log('웹훅 URL 저장 오류:', e);
-                addLogEntry(`URL 저장 중 오류가 발생했습니다: ${e.message}`, 'error');
-            }
-        }
-
-        // 저장 표시기 표시
-        function showSavedIndicator(indicatorId) {
-            try {
-                const indicator = document.getElementById(indicatorId);
-                if (indicator) {
-                    indicator.style.display = 'inline';
-                    setTimeout(() => {
-                        indicator.style.display = 'none';
-                    }, 3000);
-                }
-            } catch (e) {
-                console.log('저장 표시기 오류:', e);
-            }
-        }
-
-        // 탭 전환
-        function switchTab(event, tabName) {
-            try {
-                // 모든 탭과 컨텐츠 비활성화
-                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                
-                // 클릭된 탭 활성화
-                event.target.classList.add('active');
-                document.getElementById(tabName).classList.add('active');
-                
-                // 히스토리 탭이면 기록 표시
-                if (tabName === 'history') {
-                    cleanupOldHistory();
-                    displayHistory();
-                }
-            } catch (e) {
-                console.log('탭 전환 오류:', e);
-            }
-        }
-
-        // 1일 지난 기록 자동 삭제
-        function cleanupOldHistory() {
-            try {
-                const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-                const validHistory = sendHistory.filter(record => {
-                    try {
-                        const recordTime = new Date(record.timestamp).getTime();
-                        return recordTime > oneDayAgo;
-                    } catch (err) {
-                        console.log('기록 날짜 처리 오류:', err);
-                        return true;
-                    }
-                });
-                
-                if (validHistory.length !== sendHistory.length) {
-                    sendHistory = validHistory;
-                    safeSetStorage('webhookHistory', JSON.stringify(sendHistory));
-                }
-            } catch (e) {
-                console.log('기록 정리 오류:', e);
-            }
-        }
-
-        // 파일 핸들러 설정
-        function setupFileHandlers() {
-            try {
-                const postFileInput = document.getElementById('postFileInput');
-                const infoFileInput = document.getElementById('infoFileInput');
-
-                if (postFileInput) {
-                    postFileInput.addEventListener('change', function(e) {
-                        handlePostFiles(e.target.files);
-                    });
-                }
-
-                if (infoFileInput) {
-                    infoFileInput.addEventListener('change', function(e) {
-                        handleInfoFiles(e.target.files);
-                    });
-                }
-            } catch (e) {
-                console.log('파일 핸들러 설정 오류:', e);
-            }
-        }
-
-        function handlePostFiles(files) {
-            try {
-                if (files.length > 1) {
-                    addLogEntry('포스팅 이미지는 1개만 업로드할 수 있습니다.', 'error');
-                    return;
-                }
-                postFiles = Array.from(files);
-                
-                postFiles.forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        try {
-                            file.base64Data = e.target.result;
-                            updatePostFileList();
-                        } catch (err) {
-                            console.log('포스팅 파일 처리 오류:', err);
-                        }
-                    };
-                    reader.onerror = function(err) {
-                        console.log('파일 읽기 오류:', err);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            } catch (e) {
-                console.log('포스팅 파일 처리 오류:', e);
-            }
-        }
-
-        function handleInfoFiles(files) {
-            try {
-                if (files.length > 4) {
-                    addLogEntry('정보 이미지는 최대 4개까지 업로드할 수 있습니다.', 'error');
-                    return;
-                }
-                infoFiles = Array.from(files);
-                
-                infoFiles.forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        try {
-                            file.base64Data = e.target.result;
-                            updateInfoFileList();
-                        } catch (err) {
-                            console.log('정보 파일 처리 오류:', err);
-                        }
-                    };
-                    reader.onerror = function(err) {
-                        console.log('파일 읽기 오류:', err);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            } catch (e) {
-                console.log('정보 파일 처리 오류:', e);
-            }
-        }
-
-        function updatePostFileList() {
-            try {
-                const fileList = document.getElementById('postFileList');
-                if (!fileList) return;
-                
-                if (postFiles.length === 0) {
-                    fileList.style.display = 'none';
-                    return;
-                }
-
-                fileList.style.display = 'block';
-                fileList.innerHTML = '';
-
-                postFiles.forEach((file, index) => {
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
-                    fileItem.innerHTML = `
-                        <span>${file.name} (${formatFileSize(file.size)})</span>
-                        <button class="remove-file" onclick="removePostFile(${index})">삭제</button>
-                    `;
-                    fileList.appendChild(fileItem);
-                });
-            } catch (e) {
-                console.log('포스팅 파일 목록 업데이트 오류:', e);
-            }
-        }
-
-        function updateInfoFileList() {
-            try {
-                const fileList = document.getElementById('infoFileList');
-                if (!fileList) return;
-                
-                if (infoFiles.length === 0) {
-                    fileList.style.display = 'none';
-                    return;
-                }
-
-                fileList.style.display = 'block';
-                fileList.innerHTML = '';
-
-                infoFiles.forEach((file, index) => {
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
-                    fileItem.innerHTML = `
-                        <span>${file.name} (${formatFileSize(file.size)})</span>
-                        <button class="remove-file" onclick="removeInfoFile(${index})">삭제</button>
-                    `;
-                    fileList.appendChild(fileItem);
-                });
-            } catch (e) {
-                console.log('정보 파일 목록 업데이트 오류:', e);
-            }
-        }
-
-        function removePostFile(index) {
-            try {
-                postFiles.splice(index, 1);
-                updatePostFileList();
-            } catch (e) {
-                console.log('포스팅 파일 삭제 오류:', e);
-            }
-        }
-
-        function removeInfoFile(index) {
-            try {
-                infoFiles.splice(index, 1);
-                updateInfoFileList();
-            } catch (e) {
-                console.log('정보 파일 삭제 오류:', e);
-            }
-        }
-
-        function formatFileSize(bytes) {
-            try {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-            } catch (e) {
-                console.log('파일 크기 포맷 오류:', e);
-                return 'N/A';
-            }
-        }
-
-        function clearAllFields() {
-            try {
-                document.getElementById('productName').value = '';
-                document.getElementById('productPrice').value = '';
-                document.getElementById('productInfo').value = '';
-                document.getElementById('customerReview').value = '';
-                document.getElementById('affiliateLink').value = '';
-                document.getElementById('affiliateNotice').value = '';
-                postFiles = [];
-                infoFiles = [];
-                updatePostFileList();
-                updateInfoFileList();
-            } catch (e) {
-                console.log('필드 초기화 오류:', e);
-            }
-        }
-
-        function buildMessageContent() {
-            try {
-                let content = '';
-                
-                const productName = document.getElementById('productName').value.trim();
-                const productPrice = document.getElementById('productPrice').value.trim();
-                const productInfo = document.getElementById('productInfo').value.trim();
-                const customerReview = document.getElementById('customerReview').value.trim();
-                const affiliateLink = document.getElementById('affiliateLink').value.trim();
-                const affiliateNotice = document.getElementById('affiliateNotice').value.trim();
-                
-                // 빈 필드도 포함하여 모든 필드를 항상 전송
-                content += `[제품명]${productName}\n`;
-                content += `[제품가격]${productPrice}\n`;
-                content += `[제품정보]${productInfo}\n`;
-                content += `[고객리뷰]${customerReview}\n`;
-                content += `[구매링크]${affiliateLink}\n`;
-                content += `[대가성문구]${affiliateNotice}\n`;
-                
-                return content.trim();
-            } catch (e) {
-                console.log('메시지 내용 생성 오류:', e);
-                return '';
-            }
-        }
-
-        // 전체 초기화 함수
-        function clearAll() {
-            try {
-                clearAllFields();
-                clearLogArea();
-                addLogEntry('전체 초기화가 완료되었습니다.', 'info');
-            } catch (e) {
-                console.log('전체 초기화 오류:', e);
-            }
-        }
-
-        function startTransferProcess() {
-            try {
-                if (isTransferInProgress) {
-                    addLogEntry('이미 전송이 진행 중입니다. 잠시만 기다려주세요.', 'error');
-                    return;
-                }
-
-                const url1 = document.getElementById('webhookUrl1').value.trim();
-                const url2 = document.getElementById('webhookUrl2').value.trim();
-                
-                if (!url1) {
-                    addLogEntry(`웹훅 1 (Airtable) URL을 입력하고 저장해주세요.`, 'error');
-                    return;
-                }
-
-                if (!url2) {
-                    addLogEntry(`웹훅 2 (Buffer) URL을 입력하고 저장해주세요.`, 'error');
-                    return;
-                }
-
-                // 전송 시작 시 필드 비활성화
-                isTransferInProgress = true;
-                toggleFormFields(true);
-
-                addLogEntry(`전송 프로세스 시작...`, 'info');
-                sendWebhook('webhookUrl1');
-            } catch (e) {
-                console.log('전송 프로세스 시작 오류:', e);
-                addLogEntry(`전송 프로세스 시작 중 오류가 발생했습니다: ${e.message}`, 'error');
-                isTransferInProgress = false;
-                toggleFormFields(false);
-            }
-        }
-
-        // 웹훅 1 전송 함수
-        function sendWebhook(urlFieldId) {
-            try {
-                const url = document.getElementById(urlFieldId).value.trim();
-                const content = buildMessageContent();
-                
-                if (!url) {
-                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력하고 저장해주세요.`, 'error');
-                    isTransferInProgress = false;
-                    toggleFormFields(false);
-                    return;
-                }
-
-                const allFiles = [...infoFiles, ...postFiles];
-
-                const discordMessage = {
-                    content: content,
-                    author: {
-                        id: "123456789",
-                        username: "testuser", 
-                        discriminator: "0001"
-                    },
-                    timestamp: new Date().toISOString(),
-                    attachments: allFiles.map((file, index) => ({
-                        id: `img${index.toString().padStart(3, '0')}`,
-                        filename: file.name,
-                        size: file.size,
-                        url: null,
-                        content_type: file.type || 'image/png',
-                        base64: file.base64Data ? file.base64Data.split(',')[1] : null,
-                        is_local_file: true
-                    }))
-                };
-
-                const startTime = Date.now();
-                const webhookLabel = getWebhookLabel(urlFieldId);
-                addLogEntry(`${webhookLabel} 전송 중...`, 'info');
-
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(discordMessage)
-                })
-                .then(response => {
-                    const endTime = Date.now();
-                    const duration = endTime - startTime;
-                    
-                    console.log(`웹훅 응답 상태: ${response.status}, URL: ${urlFieldId}`);
-                    
-                    return response.text().then(text => {
-                        console.log(`응답 텍스트: "${text}"`);
-                        
-                        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
-                        let responseData = null;
-                        
-                        if (text) {
-                            try {
-                                responseData = JSON.parse(text);
-                                console.log('파싱된 응답 데이터:', responseData);
-                                
-                                if (responseData.message) {
-                                    message += `\n메시지: ${responseData.message}`;
-                                }
-                                
-                            } catch (e) {
-                                console.log('JSON 파싱 실패:', e);
-                                message += `\n응답 내용: ${text}`;
-                                
-                                // JSON 파싱 실패 시에도 success와 Product_ID 체크 시도
-                                if (text.includes('success') || text.includes('"status":"success"')) {
-                                    const productIdMatch = text.match(/"Product_ID":\s*"?([^",}]+)"?/);
-                                    let extractedProductId = null;
-                                    
-                                    if (productIdMatch) {
-                                        extractedProductId = productIdMatch[1].trim();
-                                    }
-                                    
-                                    responseData = { 
-                                        status: 'success', 
-                                        message: '텍스트 파싱을 통한 성공 감지',
-                                        Product_ID: extractedProductId
-                                    };
-                                }
-                            }
-                        }
-                        
-                        // 웹훅 1에서 success 응답 받으면 3초 지연 후 웹훅 2 전송
-                        if (responseData && responseData.status === 'success' && urlFieldId === 'webhookUrl1') {
-                            console.log('Make.com 워크플로우 완료! 웹훅 2 전송 시작');
-                            
-                            addLogEntry(message, response.ok ? 'success' : 'error');
-                            addLogEntry(`🎉 Make.com 워크플로우 완료! 3초 후 웹훅 2 (Buffer) 전송...`, 'success');
-                            
-                            // 3초 지연 후 웹훅 2 호출
-                            setTimeout(() => {
-                                addLogEntry(`🚀 웹훅 2 (Buffer) 전송 시작...`, 'info');
-                                
-                                const productId = responseData.Product_ID || null;
-                                console.log('웹훅 2에 전달할 Product_ID:', productId);
-                                
-                                if (productId) {
-                                    sendWebhookWithProductID('webhookUrl2', productId);
-                                } else {
-                                    addLogEntry(`❌ Product_ID를 찾을 수 없어서 웹훅 2 전송을 중단합니다.`, 'error');
-                                    isTransferInProgress = false;
-                                    toggleFormFields(false);
-                                }
-                            }, 3000);
-                            
-                            // 히스토리 저장
-                            saveToHistory({
-                                url: url,
-                                webhookType: webhookLabel,
-                                method: 'POST',
-                                data: JSON.stringify(discordMessage),
-                                status: response.status,
-                                success: response.ok,
-                                timestamp: new Date().toISOString(),
-                                duration: duration,
-                                response: responseData
-                            });
-                            
-                            return;
-                        }
-                        
-                        saveToHistory({
-                            url: url,
-                            webhookType: webhookLabel,
-                            method: 'POST',
-                            data: JSON.stringify(discordMessage),
-                            status: response.status,
-                            success: response.ok,
-                            timestamp: new Date().toISOString(),
-                            duration: duration,
-                            response: responseData
-                        });
-                        
-                        addLogEntry(message, response.ok ? 'success' : 'error');
-                        
-                        if (!response.ok) {
-                            isTransferInProgress = false;
-                            toggleFormFields(false);
-                        }
-                    });
-                })
-                .catch(error => {
-                    const endTime = Date.now();
-                    const duration = endTime - startTime;
-                    
-                    console.log('웹훅 전송 오류:', error);
-                    
-                    const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
-                    
-                    saveToHistory({
-                        url: url,
-                        webhookType: webhookLabel,
-                        method: 'POST',
-                        data: JSON.stringify(discordMessage),
-                        error: error.message,
-                        success: false,
-                        timestamp: new Date().toISOString(),
-                        duration: duration
-                    });
-                    
-                    addLogEntry(errorMessage, 'error');
-                    isTransferInProgress = false;
-                    toggleFormFields(false);
-                });
-            } catch (e) {
-                console.log('웹훅 전송 오류:', e);
-                addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
-                isTransferInProgress = false;
-                toggleFormFields(false);
-            }
-        }
-
-        // 웹훅 2 전송 함수 - 간소화된 버전
-        function sendWebhookWithProductID(urlFieldId, productId) {
-            try {
-                console.log(`웹훅 2 함수 호출됨: ${urlFieldId}, Product_ID: ${productId}`);
-                
-                const url = document.getElementById(urlFieldId).value.trim();
-                
-                if (!url) {
-                    addLogEntry(`${getWebhookLabel(urlFieldId)} URL을 입력하고 저장해주세요.`, 'error');
-                    isTransferInProgress = false;
-                    toggleFormFields(false);
-                    return;
-                }
-
-                if (!productId) {
-                    addLogEntry(`Product_ID가 없습니다. 웹훅 2 전송을 중단합니다.`, 'error');
-                    isTransferInProgress = false;
-                    toggleFormFields(false);
-                    return;
-                }
-
-                // Product_ID로 메시지 구성
-                const simpleMessage = {
-                    content: `[Product_ID]${productId}`,
-                    author: {
-                        id: "123456789",
-                        username: "testuser", 
-                        discriminator: "0001"
-                    },
-                    timestamp: new Date().toISOString(),
-                    attachments: []
-                };
-
-                const startTime = Date.now();
-                const webhookLabel = getWebhookLabel(urlFieldId);
-                
-                console.log(`웹훅 2 전송 시작: ${url}, Product_ID: ${productId}`);
-                addLogEntry(`${webhookLabel} 전송 중... (Product_ID: ${productId})`, 'info');
-
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(simpleMessage)
-                })
-                .then(response => {
-                    const endTime = Date.now();
-                    const duration = endTime - startTime;
-                    
-                    console.log(`웹훅 2 응답 상태: ${response.status}`);
-                    
-                    return response.text().then(text => {
-                        console.log(`웹훅 2 응답 텍스트: "${text}"`);
-                        
-                        let message = `${webhookLabel}\n상태: ${response.status} ${response.statusText}\n응답 시간: ${duration}ms`;
-                        
-                        if (text) {
-                            try {
-                                // JSON 파싱 시도
-                                const responseData = JSON.parse(text);
-                                console.log('웹훅 2 파싱된 응답:', responseData);
-                                
-                                // 응답 메시지 표시
-                                if (responseData.message) {
-                                    addLogEntry(`🎉 ${responseData.message}`, responseData.status === 'success' ? 'success' : 'error');
-                                }
-                                
-                                // 프로세스 완료
-                                isTransferInProgress = false;
-                                toggleFormFields(false);
-                                
-                            } catch (e) {
-                                // JSON 파싱 실패 시 간단 처리
-                                console.log(`JSON 파싱 실패:`, e);
-                                message += `\n응답 내용: ${text}`;
-                                
-                                // 프로세스 완료
-                                isTransferInProgress = false;
-                                toggleFormFields(false);
-                            }
-                        } else {
-                            // 응답이 없어도 프로세스 완료
-                            isTransferInProgress = false;
-                            toggleFormFields(false);
-                        }
-                        
-                        saveToHistory({
-                            url: url,
-                            webhookType: webhookLabel + ' (Product_ID 전송)',
-                            method: 'POST',
-                            data: JSON.stringify(simpleMessage),
-                            status: response.status,
-                            success: response.ok,
-                            timestamp: new Date().toISOString(),
-                            duration: duration,
-                            response: text,
-                            productName: productId
-                        });
-                        
-                        addLogEntry(message, response.ok ? 'success' : 'error');
-                    });
-                })
-                .catch(error => {
-                    const endTime = Date.now();
-                    const duration = endTime - startTime;
-                    
-                    console.log('웹훅 2 전송 오류:', error);
-                    
-                    const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
-                    
-                    saveToHistory({
-                        url: url,
-                        webhookType: webhookLabel + ' (Product_ID 전송)',
-                        method: 'POST',
-                        data: JSON.stringify(simpleMessage),
-                        error: error.message,
-                        success: false,
-                        timestamp: new Date().toISOString(),
-                        duration: duration,
-                        productName: productId
-                    });
-                    
-                    addLogEntry(errorMessage, 'error');
-                    
-                    // 오류 발생 시 필드 다시 활성화
-                    isTransferInProgress = false;
-                    toggleFormFields(false);
-                });
-            } catch (e) {
-                console.log('웹훅 2 전송 오류:', e);
-                addLogEntry(`웹훅 전송 중 오류가 발생했습니다: ${e.message}`, 'error');
-                isTransferInProgress = false;
-                toggleFormFields(false);
-            }
-        }
-
-        function saveToHistory(record) {
-            try {
-                // JSON 데이터에서 상품명 추출
-                if (!record.productName) {
-                    try {
-                        const messageData = JSON.parse(record.data);
-                        const content = messageData.content || '';
-                        const productNameMatch = content.match(/\[제품명\]([^\n\[]+)/);
-                        record.productName = productNameMatch ? productNameMatch[1].trim() : '';
-                    } catch (e) {
-                        console.log('상품명 추출 오류:', e);
-                        record.productName = '';
-                    }
-                }
-                
-                sendHistory.unshift(record);
-                
-                // 1일 지난 기록 자동 정리
-                cleanupOldHistory();
-                
-                // 최대 50개 기록 유지
-                if (sendHistory.length > 50) {
-                    sendHistory = sendHistory.slice(0, 50);
-                }
-                
-                safeSetStorage('webhookHistory', JSON.stringify(sendHistory));
-            } catch (e) {
-                console.log('기록 저장 오류:', e);
-            }
-        }
-
-        function displayHistory() {
-            try {
-                const historyDiv = document.getElementById('historyList');
-                if (!historyDiv) return;
-                
-                if (sendHistory.length === 0) {
-                    historyDiv.innerHTML = '<p>전송 기록이 없습니다.</p>';
-                    return;
-                }
-
-                let html = '';
-                sendHistory.forEach((record, index) => {
-                    try {
-                        const timestamp = new Date(record.timestamp).toLocaleString('ko-KR');
-                        const timeAgo = getTimeAgo(record.timestamp);
-                        const status = record.error ? `오류: ${record.error}` : `응답: ${record.status}`;
-                        const productName = record.productName || '상품명 없음';
-                        const webhookType = record.webhookType || '웹훅';
-                        
-                        html += `
-                            <div class="file-item" style="padding: 10px; margin-bottom: 5px; background: ${record.success ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
-                                <div>
-                                    <strong>${webhookType}</strong> - ${timestamp} (${timeAgo})
-                                    <br><strong>상품:</strong> ${productName}
-                                    <br>URL: ${record.url ? record.url.substring(0, 60) + '...' : 'N/A'}
-                                    <br>${status} (${record.duration}ms)
-                                </div>
-                            </div>
-                        `;
-                    } catch (err) {
-                        console.log('기록 항목 처리 오류:', err);
-                    }
-                });
-                historyDiv.innerHTML = html;
-            } catch (e) {
-                console.log('기록 표시 오류:', e);
-            }
-        }
-
-        function getTimeAgo(timestamp) {
-            try {
-                const now = Date.now();
-                const recordTime = new Date(timestamp).getTime();
-                const diff = Math.floor((now - recordTime) / 1000);
-                
-                if (diff < 60) return `${diff}초 전`;
-                if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-                if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-                return `${Math.floor(diff / 86400)}일 전`;
-            } catch (e) {
-                console.log('시간 계산 오류:', e);
-                return 'N/A';
-            }
-        }
-
-        function clearHistory() {
-            try {
-                sendHistory = [];
-                safeRemoveStorage('webhookHistory');
-                displayHistory();
-                addLogEntry('전송 기록이 삭제되었습니다.', 'info');
-            } catch (e) {
-                console.log('기록 삭제 오류:', e);
-            }
-        }
-
-        // 페이지 로드 시 앱 초기화
-        window.addEventListener('load', initializeApp);
+        // 앱 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM 로드 완료, 앱 초기화 시작');
+            
+            // 모듈 로드 확인
+            console.log('ProductRegister 로드됨:', typeof ProductRegister !== 'undefined');
+            console.log('ProductPosting 로드됨:', typeof ProductPosting !== 'undefined');
+            console.log('ProductShortForm 로드됨:', typeof ProductShortForm !== 'undefined');
+            console.log('ProductGiftStory 로드됨:', typeof ProductGiftStory !== 'undefined');
+            console.log('EngagementAssistant 로드됨:', typeof EngagementAssistant !== 'undefined');
+            console.log('Analytics 로드됨:', typeof Analytics !== 'undefined');
+            
+            AppState.initialize();
+            Navigation.setupNavigation();
+            AppState.updateModeDisplay();
+            
+            // 기본적으로 제품 등록 페이지 표시
+            Navigation.showPage('product-register');
+        });
     </script>
 </body>
 </html>
