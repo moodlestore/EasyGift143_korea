@@ -20,7 +20,7 @@ window.ProductPosting = {
                 <div class="section">
                     <h2>🔗 웹훅 URL 설정</h2>
                     <div class="form-group">
-                        <label for="webhookUrl1">웹훅 1 - Airtable 데이터 전송:</label>
+                        <label for="webhookUrl1">웹훅 1 - Airtable 데이터 전송</label>
                         <div class="url-input-group">
                             <input type="text" id="webhookUrl1">
                             <button onclick="ProductPosting.saveWebhookUrl('webhookUrl1')">저장</button>
@@ -28,7 +28,7 @@ window.ProductPosting = {
                         <span id="savedIndicator1" class="saved-indicator" style="display: none;">✅ 저장됨</span>
                     </div>
                     <div class="form-group">
-                        <label for="webhookUrl2">웹훅 2 - Airtable → Buffer 전송:</label>
+                        <label for="webhookUrl2">웹훅 2 - Airtable → Buffer 전송</label>
                         <div class="url-input-group">
                             <input type="text" id="webhookUrl2">
                             <button onclick="ProductPosting.saveWebhookUrl('webhookUrl2')">저장</button>
@@ -44,37 +44,37 @@ window.ProductPosting = {
                     <button class="clear-all" onclick="ProductPosting.clearAll()">🗑️ 전체 초기화</button>
 
                     <div class="form-group">
-                        <label for="productName">제품명:</label>
+                        <label for="productName">제품명</label>
                         <input type="text" id="productName" placeholder="예: 애플 에어팟 프로 3세대">
                     </div>
 
                     <div class="form-group">
-                        <label for="productPrice">제품가격:</label>
+                        <label for="productPrice">제품가격</label>
                         <input type="text" id="productPrice" placeholder="예: 359,000원">
                     </div>
 
                     <div class="form-group">
-                        <label for="productInfo">제품정보:</label>
+                        <label for="productInfo">제품정보</label>
                         <textarea id="productInfo" rows="10" placeholder="제품의 주요 특징과 기능을 설명해주세요"></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="customerReview">고객리뷰:</label>
+                        <label for="customerReview">고객리뷰</label>
                         <textarea id="customerReview" rows="10" placeholder="고객들의 후기와 평가를 입력해주세요. 여러 리뷰가 있을 경우 줄바꿈으로 구분하세요.&#10;&#10;예:&#10;음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요.&#10;장시간 착용해도 편안합니다.&#10;배터리 지속시간도 만족스럽습니다."></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="affiliateLink">구매링크:</label>
+                        <label for="affiliateLink">구매링크</label>
                         <textarea id="affiliateLink" rows="1" placeholder="구매 링크를 입력해주세요"></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="affiliateNotice">대가성문구:</label>
+                        <label for="affiliateNotice">대가성문구</label>
                         <textarea id="affiliateNotice" rows="1" placeholder="어필리에이트 대가성 문구를 입력해 주세요."></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label>정보 이미지들 (최대 4개):</label>
+                        <label>정보 이미지들 (최대 4개)</label>
                         <div class="file-upload-area">
                             <input type="file" id="infoFileInput" multiple accept="image/*" style="display: none;">
                             <button onclick="document.getElementById('infoFileInput').click()">정보 이미지들 선택</button>
@@ -84,7 +84,7 @@ window.ProductPosting = {
                     </div>
 
                     <div class="form-group">
-                        <label>포스팅 이미지 (1개):</label>
+                        <label>포스팅 이미지 (1개)</label>
                         <div class="file-upload-area">
                             <input type="file" id="postFileInput" accept="image/*" style="display: none;">
                             <button onclick="document.getElementById('postFileInput').click()">포스팅 이미지 선택</button>
