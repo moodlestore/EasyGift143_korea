@@ -481,12 +481,12 @@ window.ProductShortForm = {
         }
 
         // ⭐ 추가: 대본 분산 후 Cut 2, 4의 대본→이미지 버튼도 활성화
-        [2, 4].forEach(cutNum => {
-            const scriptToImageBtn = document.getElementById(`scriptToImageCut${cutNum}Btn`);
-            if (scriptToImageBtn && cutNum !== 4) { // Cut 4는 제품 이미지라서 제외
-                scriptToImageBtn.disabled = false;
-            }
-        });
+        [1, 2, 3, 5].forEach(cutNum => {
+			const scriptToImageBtn = document.getElementById(`scriptToImageCut${cutNum}Btn`);
+			const promptToImageBtn = document.getElementById(`promptToImageCut${cutNum}Btn`);
+			if (scriptToImageBtn) scriptToImageBtn.disabled = false;
+			if (promptToImageBtn) promptToImageBtn.disabled = false;
+		});
 
         Utils.showAchievement('대본이 Cut별로 분산되었습니다! 📝');
     },
@@ -495,8 +495,8 @@ window.ProductShortForm = {
     handleImageGenerationSuccess: function(result, duration) {
         let generatedCount = 0;
 
-        // Cut 1, 3, 5 이미지 업데이트
-        [1, 3, 5].forEach(cutNum => {
+        // Cut 1, 2, 3, 5 이미지 업데이트
+        [1, 2, 3, 5].forEach(cutNum => {
             const cutKey = `cut${cutNum}`;
             if (result[cutKey]) {
                 // 이미지 URL 업데이트
