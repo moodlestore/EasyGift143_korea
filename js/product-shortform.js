@@ -392,8 +392,8 @@ window.ProductShortForm = {
         // ⭐ 추가: 이미지 생성 시작 시 Cut별 대본 분산
         this.distributeCutScripts();
 
-        // Cut 1, 3, 5 대본 수집 (Cut 4는 제품 이미지이므로 제외)
-        const cuts = [1, 3, 5];
+        // Cut 1, 2, 3, 5 대본 수집 (Cut 4는 제품 이미지이므로 제외)
+        const cuts = [1, 2, 3, 5];
         const scriptsToGenerate = {};
         
         cuts.forEach(cutNum => {
@@ -461,35 +461,31 @@ window.ProductShortForm = {
         });
     },
 
-    // ⭐ 추가: Cut별 대본 분산 함수
-    distributeCutScripts: function() {
-        if (!this.generatedFullScript) {
-            Utils.showAchievement('먼저 대본을 생성해주세요.', 'error');
-            return;
-        }
+	// ⭐ 수정: Cut별 대본 분산 함수 - 사용자 수정 내용 반영
+	distributeCutScripts: function() {
+		// ✅ 현재 textarea의 수정된 내용을 가져옴
+		const scriptTextarea = document.getElementById('generatedScript');
+		const currentScript = scriptTextarea ? scriptTextarea.value.trim() : '';
+		
+		if (!currentScript) {
+			Utils.showAchievement('먼저 대본을 생성해주세요.', 'error');
+			return;
+		}
 
-        // 저장된 전체 대본에서 Cut별로 분리
-        const cuts = this.parseScriptFromText(this.generatedFullScript);
-        
-        // Cut 1-5 대본을 각각의 텍스트 박스에 배치
-        for (let i = 1; i <= 5; i++) {
-            const cutScript = document.getElementById(`cut${i}Script`);
-            if (cutScript && cuts[`cut${i}`]) {
-                cutScript.value = cuts[`cut${i}`];
-                this.cuts[`cut${i}`].script = cuts[`cut${i}`];
-            }
-        }
+		// ✅ 수정된 대본에서 Cut별로 분리 (원본이 아닌 현재 내용 사용)
+		const cuts = this.parseScriptFromText(currentScript);
+		
+		// Cut 1-5 대본을 각각의 텍스트 박스에 배치
+		for (let i = 1; i <= 5; i++) {
+			const cutScript = document.getElementById(`cut${i}Script`);
+			if (cutScript && cuts[`cut${i}`]) {
+				cutScript.value = cuts[`cut${i}`];
+				this.cuts[`cut${i}`].script = cuts[`cut${i}`];
+			}
+		}
 
-        // ⭐ 추가: 대본 분산 후 Cut 2, 4의 대본→이미지 버튼도 활성화
-        [2, 4].forEach(cutNum => {
-            const scriptToImageBtn = document.getElementById(`scriptToImageCut${cutNum}Btn`);
-            if (scriptToImageBtn && cutNum !== 4) { // Cut 4는 제품 이미지라서 제외
-                scriptToImageBtn.disabled = false;
-            }
-        });
 
-        Utils.showAchievement('대본이 Cut별로 분산되었습니다! 📝');
-    },
+	},
 
     // 이미지 생성 성공 처리
     handleImageGenerationSuccess: function(result, duration) {
