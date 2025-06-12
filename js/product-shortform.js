@@ -392,8 +392,8 @@ window.ProductShortForm = {
         // ⭐ 추가: 이미지 생성 시작 시 Cut별 대본 분산
         this.distributeCutScripts();
 
-        // Cut 1, 3, 5 대본 수집 (Cut 4는 제품 이미지이므로 제외)
-        const cuts = [1, 3, 5];
+        // Cut 1, 2, 3, 5 대본 수집 (Cut 4는 제품 이미지이므로 제외)
+        const cuts = [1, 2, 3, 5];
         const scriptsToGenerate = {};
         
         cuts.forEach(cutNum => {
