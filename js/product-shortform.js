@@ -25,7 +25,7 @@ getHTML: function() {
                 <div style="display: flex; gap: 15px; align-items: flex-end;">
 					<div style="flex: 1;">
 						<label for="productCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">제품코드</label>
-						<input type="text" id="productCode" placeholder="예: EG-001, EG-002" style="width: 100%; height: 48px; padding: 12px; font-size: 14px; border: 2px solid #e1e5e9; border-radius: 8px; box-sizing: border-box;">
+						<input type="text" id="productCode" placeholder="예: ko_250612_1436, ko_250611_1749" style="width: 100%; height: 48px; padding: 12px; font-size: 14px; border: 2px solid #e1e5e9; border-radius: 8px; box-sizing: border-box;">
 					</div>
 					<button id="generateScriptBtn" onclick="ProductShortForm.generateScript()" style="height: 48px; padding: 12px 24px; font-size: 14px; border: none; border-radius: 8px; background: linear-gradient(45deg, #667eea, #764ba2); color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">📝 대본 생성</button>
 					<button onclick="ProductShortForm.openWebhookModal()" style="height: 48px; padding: 12px 20px; font-size: 14px; border: none; border-radius: 8px; background: #6c757d; color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">⚙️ 설정</button>
@@ -41,9 +41,9 @@ getHTML: function() {
 					</div>
 				</div>
 
-                <!-- Cut별 대본 & 이미지 & 프롬프트 섹션 -->
+                <!-- 대본 & 이미지 & 프롬프트 섹션 -->
                 <div class="section">
-                    <h2>🎬 Cut별 대본 & 이미지</h2>
+                    <h2>🎬 대본 & 이미지</h2>
                     
                     <!-- Cut 1-2 -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
