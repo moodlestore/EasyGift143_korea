@@ -16,35 +16,30 @@ window.ProductShortForm = {
     productImageFile: null,
 
     // HTML 반환
-    getHTML: function() {
-        return `
-            <div class="shortform-container">
-                <!-- 설정 버튼 (오른쪽 상단) -->
-                <div style="text-align: right; margin-bottom: 20px;">
-                    <button onclick="ProductShortForm.openWebhookModal()" style="background: #6c757d;">⚙️ 설정</button>
-                </div>
-
-                <!-- 제품코드 입력 섹션 -->
-                <div class="section">
-                    <h2>📋 제품코드 입력</h2>
-                    <div style="display: flex; gap: 15px; align-items: end;">
-                        <div style="flex: 1;">
-                            <label for="productCode">제품코드:</label>
-                            <input type="text" id="productCode" placeholder="예: EG-001, EG-002" style="width: 100%;">
-                        </div>
-                        <button id="generateScriptBtn" onclick="ProductShortForm.generateScript()">📝 대본 생성</button>
-                    </div>
-                </div>
+getHTML: function() {
+    return `
+        <div class="shortform-container">
+            <!-- 제품코드 입력 섹션 -->
+            <div class="section">
+                <h2>📋 제품코드 입력</h2>
+                <div style="display: flex; gap: 15px; align-items: flex-end;">
+					<div style="flex: 1;">
+						<label for="productCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">제품코드:</label>
+						<input type="text" id="productCode" placeholder="예: EG-001, EG-002" style="width: 100%; height: 48px; padding: 12px; font-size: 14px; border: 2px solid #e1e5e9; border-radius: 8px; box-sizing: border-box;">
+					</div>
+					<button id="generateScriptBtn" onclick="ProductShortForm.generateScript()" style="height: 48px; padding: 12px 24px; font-size: 14px; border: none; border-radius: 8px; background: linear-gradient(45deg, #667eea, #764ba2); color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">📝 대본 생성</button>
+					<button onclick="ProductShortForm.openWebhookModal()" style="height: 48px; padding: 12px 20px; font-size: 14px; border: none; border-radius: 8px; background: #6c757d; color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">⚙️ 설정</button>
+				</div>
+            </div>
 
                 <!-- 대본 섹션 -->
-                <div class="section">
-                    <h2>📝 생성된 대본</h2>
-                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                        <button id="regenerateScriptBtn" onclick="ProductShortForm.regenerateScript()">🔄 대본 다시 생성</button>
-                        <button id="generateImagesBtn" onclick="ProductShortForm.startImageGeneration()" disabled>🖼️ 이미지 생성 시작</button>
-                    </div>
-                    <textarea id="generatedScript" rows="8" placeholder="생성된 5컷 대본이 여기에 표시됩니다..."></textarea>
-                </div>
+				<div class="section">
+					<h2>📝 생성된 대본</h2>
+					<textarea id="generatedScript" rows="8" placeholder="생성된 5컷 대본이 여기에 표시됩니다..."></textarea>
+					<div style="margin-top: 15px;">
+						<button id="generateImagesBtn" onclick="ProductShortForm.startImageGeneration()" disabled>🖼️ 이미지 생성 시작</button>
+					</div>
+				</div>
 
                 <!-- Cut별 대본 & 이미지 & 프롬프트 섹션 -->
                 <div class="section">
@@ -213,7 +208,8 @@ window.ProductShortForm = {
 
     // 웹훅 모달 열기
     openWebhookModal: function() {
-        document.getElementById('shortformWebhookModal').style.display = 'block';
+        const modal = document.getElementById('shortformWebhookModal');
+        modal.style.display = 'flex';  // 'block' 대신 'flex' 사용
         this.loadSavedWebhooks();
     },
 
