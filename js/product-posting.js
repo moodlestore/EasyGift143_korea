@@ -39,10 +39,9 @@ window.ProductPosting = {
 
                 <!-- 데이터 입력 -->
                 <div class="section">
-                    <h2>📝 데이터 입력</h2>
-                    
-                    <button class="clear-all" onclick="ProductPosting.clearAll()">🗑️ 전체 초기화</button>
-
+					<h2>📝 데이터 입력</h2>
+					<button class="clear-all" onclick="ProductPosting.clearAll()">🗑️ 전체 초기화</button>
+					
                     <div class="form-group">
                         <label for="productName">제품명</label>
                         <input type="text" id="productName" placeholder="예: 애플 에어팟 프로 3세대">
