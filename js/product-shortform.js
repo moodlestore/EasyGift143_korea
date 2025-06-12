@@ -1,4 +1,4 @@
-// 숏폼 콘텐츠 생성 모듈
+// 숏폼 콘텐츠 생성 모듈 (수정 버전)
 window.ProductShortForm = {
     // 상태 관리
     webhookUrls: {
@@ -14,52 +14,53 @@ window.ProductShortForm = {
         cut5: { script: '', image: '', prompt: '' }
     },
     productImageFile: null,
+    generatedFullScript: '', // 전체 대본 저장용
 
     // HTML 반환
-getHTML: function() {
-    return `
-        <div class="shortform-container">
-            <!-- 제품코드 입력 섹션 -->
-            <div class="section">
-                <h2>📋 제품코드 입력</h2>
-                <div style="display: flex; gap: 15px; align-items: flex-end;">
-					<div style="flex: 1;">
-						<label for="productCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">제품코드</label>
-						<input type="text" id="productCode" placeholder="예: ko_250612_1436, ko_250611_1749" style="width: 100%; height: 48px; padding: 12px; font-size: 14px; border: 2px solid #e1e5e9; border-radius: 8px; box-sizing: border-box;">
-					</div>
-					<button id="generateScriptBtn" onclick="ProductShortForm.generateScript()" style="height: 48px; padding: 12px 24px; font-size: 14px; border: none; border-radius: 8px; background: linear-gradient(45deg, #667eea, #764ba2); color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">📝 대본 생성</button>
-					<button onclick="ProductShortForm.openWebhookModal()" style="height: 48px; padding: 12px 20px; font-size: 14px; border: none; border-radius: 8px; background: #6c757d; color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">⚙️ 설정</button>
-				</div>
-            </div>
+    getHTML: function() {
+        return `
+            <div class="shortform-container">
+                <!-- 제품코드 입력 섹션 -->
+                <div class="section">
+                    <h2>📋 제품코드 입력</h2>
+                    <div style="display: flex; gap: 15px; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label for="productCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">제품코드</label>
+                            <input type="text" id="productCode" placeholder="예: ko_250612_1436, ko_250611_1749" style="width: 100%; height: 48px; padding: 12px; font-size: 14px; border: 2px solid #e1e5e9; border-radius: 8px; box-sizing: border-box;">
+                        </div>
+                        <button id="generateScriptBtn" onclick="ProductShortForm.generateScript()" style="height: 48px; padding: 12px 24px; font-size: 14px; border: none; border-radius: 8px; background: linear-gradient(45deg, #667eea, #764ba2); color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">📝 대본 생성</button>
+                        <button onclick="ProductShortForm.openWebhookModal()" style="height: 48px; padding: 12px 20px; font-size: 14px; border: none; border-radius: 8px; background: #6c757d; color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">⚙️ 설정</button>
+                    </div>
+                </div>
 
                 <!-- 대본 섹션 -->
-				<div class="section">
-					<h2>📝 생성된 대본</h2>
-					<textarea id="generatedScript" rows="8" placeholder="생성된 5컷 대본이 여기에 표시됩니다..."></textarea>
-					<div style="margin-top: 15px;">
-						<button id="generateImagesBtn" onclick="ProductShortForm.startImageGeneration()" disabled>🖼️ 이미지 생성 시작</button>
-					</div>
-				</div>
+                <div class="section">
+                    <h2>📝 생성된 대본</h2>
+                    <textarea id="generatedScript" rows="8" placeholder="생성된 5컷 대본이 여기에 표시됩니다..."></textarea>
+                    <div style="margin-top: 15px;">
+                        <button id="generateImagesBtn" onclick="ProductShortForm.startImageGeneration()" disabled>🖼️ 이미지 생성 시작</button>
+                    </div>
+                </div>
 
                 <!-- 대본 & 이미지 & 프롬프트 섹션 -->
                 <div class="section">
                     <h2>🎬 대본 & 이미지</h2>
                     
-                    <!-- Cut 1-2 -->
+                    <!-- 모든 Cut을 동일한 너비로 배치 (2열 그리드) -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                         ${this.getCutHTML(1)}
                         ${this.getCutHTML(2)}
                     </div>
                     
-                    <!-- Cut 3-4 -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                         ${this.getCutHTML(3)}
                         ${this.getCutHTML(4)}
                     </div>
                     
-                    <!-- Cut 5 -->
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                    <!-- Cut 5도 동일한 2열 그리드 구조 (한 칸은 비워둠) -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         ${this.getCutHTML(5)}
+                        <div></div> <!-- 빈 공간 -->
                     </div>
                 </div>
 
@@ -209,7 +210,7 @@ getHTML: function() {
     // 웹훅 모달 열기
     openWebhookModal: function() {
         const modal = document.getElementById('shortformWebhookModal');
-        modal.style.display = 'flex';  // 'block' 대신 'flex' 사용
+        modal.style.display = 'flex';
         this.loadSavedWebhooks();
     },
 
@@ -310,8 +311,7 @@ getHTML: function() {
                     } catch (parseError) {
                         // JSON 파싱 실패 시 텍스트 기반 처리
                         this.handleScriptGenerationSuccess({
-                            script: text.substring(0, 1000),
-                            cuts: this.parseScriptFromText(text)
+                            script: text.substring(0, 1000)
                         }, duration);
                     }
                 } else {
@@ -331,24 +331,16 @@ getHTML: function() {
         });
     },
 
-    // 대본 생성 성공 처리
+    // 대본 생성 성공 처리 (수정: Cut별 분산 제거)
     handleScriptGenerationSuccess: function(result, duration) {
-        // 전체 대본 표시
+        // 전체 대본만 표시하고 내부 변수에 저장
         const scriptTextarea = document.getElementById('generatedScript');
         if (scriptTextarea && result.script) {
             scriptTextarea.value = result.script;
+            this.generatedFullScript = result.script; // 내부 저장
         }
 
-        // Cut별 대본 분리
-        if (result.cuts) {
-            for (let i = 1; i <= 5; i++) {
-                const cutScript = document.getElementById(`cut${i}Script`);
-                if (cutScript && result.cuts[`cut${i}`]) {
-                    cutScript.value = result.cuts[`cut${i}`];
-                    this.cuts[`cut${i}`].script = result.cuts[`cut${i}`];
-                }
-            }
-        }
+        // ⭐ 수정: Cut별 대본 분산을 여기서 하지 않음
 
         // 이미지 생성 버튼 활성화
         const generateImagesBtn = document.getElementById('generateImagesBtn');
@@ -382,12 +374,7 @@ getHTML: function() {
         return cuts;
     },
 
-    // 대본 재생성
-    regenerateScript: function() {
-        this.generateScript(); // 동일한 로직 재사용
-    },
-
-    // 이미지 생성 시작
+    // ⭐ 수정: 이미지 생성 시작 시 Cut별 대본 분산 실행
     startImageGeneration: function() {
         if (this.isGenerating) {
             Utils.showAchievement('이미지 생성이 진행 중입니다.', 'error');
@@ -400,6 +387,9 @@ getHTML: function() {
             this.openWebhookModal();
             return;
         }
+
+        // ⭐ 추가: 이미지 생성 시작 시 Cut별 대본 분산
+        this.distributeCutScripts();
 
         // Cut 1, 3, 5 대본 수집 (Cut 4는 제품 이미지이므로 제외)
         const cuts = [1, 3, 5];
@@ -468,6 +458,28 @@ getHTML: function() {
             this.isGenerating = false;
             this.showLoading(false);
         });
+    },
+
+    // ⭐ 추가: Cut별 대본 분산 함수
+    distributeCutScripts: function() {
+        if (!this.generatedFullScript) {
+            Utils.showAchievement('먼저 대본을 생성해주세요.', 'error');
+            return;
+        }
+
+        // 저장된 전체 대본에서 Cut별로 분리
+        const cuts = this.parseScriptFromText(this.generatedFullScript);
+        
+        // Cut 1-5 대본을 각각의 텍스트 박스에 배치
+        for (let i = 1; i <= 5; i++) {
+            const cutScript = document.getElementById(`cut${i}Script`);
+            if (cutScript && cuts[`cut${i}`]) {
+                cutScript.value = cuts[`cut${i}`];
+                this.cuts[`cut${i}`].script = cuts[`cut${i}`];
+            }
+        }
+
+        Utils.showAchievement('대본이 Cut별로 분산되었습니다! 📝');
     },
 
     // 이미지 생성 성공 처리
@@ -613,17 +625,12 @@ getHTML: function() {
     // 로딩 상태 표시
     showLoading: function(show) {
         const generateScriptBtn = document.getElementById('generateScriptBtn');
-        const regenerateScriptBtn = document.getElementById('regenerateScriptBtn');
         const generateImagesBtn = document.getElementById('generateImagesBtn');
 
         if (show) {
             if (generateScriptBtn) {
                 generateScriptBtn.disabled = true;
                 generateScriptBtn.innerHTML = '<span class="button-loading"></span>생성 중...';
-            }
-            if (regenerateScriptBtn) {
-                regenerateScriptBtn.disabled = true;
-                regenerateScriptBtn.innerHTML = '<span class="button-loading"></span>재생성 중...';
             }
             if (generateImagesBtn) {
                 generateImagesBtn.disabled = true;
@@ -642,10 +649,6 @@ getHTML: function() {
             if (generateScriptBtn) {
                 generateScriptBtn.disabled = false;
                 generateScriptBtn.innerHTML = '📝 대본 생성';
-            }
-            if (regenerateScriptBtn) {
-                regenerateScriptBtn.disabled = false;
-                regenerateScriptBtn.innerHTML = '🔄 대본 다시 생성';
             }
             if (generateImagesBtn) {
                 generateImagesBtn.disabled = false;
