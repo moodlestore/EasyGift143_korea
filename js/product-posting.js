@@ -1,154 +1,150 @@
-// 포스팅 기능 모듈 (기존 product-register.js의 메인 기능을 그대로 분리)
+// 포스팅 기능 모듈 (내부 탭 제거 버전)
 window.ProductPosting = {
-    // 상태 변수 (기존과 동일)
+    // 상태 변수
     postFiles: [],
     infoFiles: [],
-    sendHistory: [],
     isTransferInProgress: false,
     
-    // HTML 반환 (기존 메인 탭 내용 그대로)
+    // HTML 반환 (탭 제거, 메인 기능만)
     getHTML: function() {
         return `
-            <div class="tabs">
-                <button class="tab active" onclick="ProductPosting.switchTab(event, 'main')">메인</button>
-                <button class="tab" onclick="ProductPosting.switchTab(event, 'history')">전송 기록</button>
+            <!-- 데이터 입력 -->
+            <div class="section">
+                <h2>📝 데이터 입력</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <button class="clear-all" onclick="ProductPosting.clearAll()" style="margin-bottom: 0;">🗑️ 전체 초기화</button>
+                    <button onclick="ProductPosting.openWebhookModal()" style="background: #6c757d; margin-bottom: 0;">⚙️ 설정</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productName">제품명</label>
+                    <input type="text" id="productName" placeholder="예: 애플 에어팟 프로 3세대">
+                </div>
+
+                <div class="form-group">
+                    <label for="productPrice">제품가격</label>
+                    <input type="text" id="productPrice" placeholder="예: 359,000원">
+                </div>
+
+                <div class="form-group">
+                    <label for="productInfo">제품정보</label>
+                    <textarea id="productInfo" rows="10" placeholder="제품의 주요 특징과 기능을 설명해주세요"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="customerReview">고객리뷰</label>
+                    <textarea id="customerReview" rows="10" placeholder="고객들의 후기와 평가를 입력해주세요. 여러 리뷰가 있을 경우 줄바꿈으로 구분하세요.&#10;&#10;예:&#10;음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요.&#10;장시간 착용해도 편안합니다.&#10;배터리 지속시간도 만족스럽습니다."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="affiliateLink">구매링크</label>
+                    <textarea id="affiliateLink" rows="1" placeholder="구매 링크를 입력해주세요"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="affiliateNotice">대가성문구</label>
+                    <textarea id="affiliateNotice" rows="1" placeholder="어필리에이트 대가성 문구를 입력해 주세요."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>정보 이미지들 (최대 4개)</label>
+                    <div class="file-upload-area">
+                        <input type="file" id="infoFileInput" multiple accept="image/*" style="display: none;">
+                        <button onclick="document.getElementById('infoFileInput').click()">정보 이미지들 선택</button>
+                        <p>info-1.png, info-2.png, info-3.png, info-4.png 파일들을 업로드하세요</p>
+                    </div>
+                    <div id="infoFileList" class="file-list" style="display: none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>포스팅 이미지 (1개)</label>
+                    <div class="file-upload-area">
+                        <input type="file" id="postFileInput" accept="image/*" style="display: none;">
+                        <button onclick="document.getElementById('postFileInput').click()">포스팅 이미지 선택</button>
+                        <p>post.png 파일을 업로드하세요</p>
+                    </div>
+                    <div id="postFileList" class="file-list" style="display: none;"></div>
+                </div>
             </div>
 
-            <!-- 메인 탭 -->
-            <div id="main" class="tab-content active">
-                <!-- 웹훅 URL 설정 -->
-                <div class="section">
-                    <h2>🔗 웹훅 URL 설정</h2>
+            <!-- 전송 -->
+            <div class="section">
+                <h2>🚀 전송</h2>
+                <button id="sendButton" onclick="ProductPosting.startTransferProcess()">제품 정보 전송하기</button>
+                <div id="result"></div>
+            </div>
+
+            <!-- 웹훅 설정 모달 -->
+            <div id="postingWebhookModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close" onclick="ProductPosting.closeWebhookModal()">&times;</span>
+                    <h2>⚙️ 웹훅 URL 설정</h2>
+                    
                     <div class="form-group">
-                        <label for="webhookUrl1">웹훅 1 - Airtable 데이터 전송</label>
+                        <label for="webhookUrl1">웹훅 1 - Airtable 데이터 전송:</label>
                         <div class="url-input-group">
-                            <input type="text" id="webhookUrl1">
+                            <input type="text" id="webhookUrl1" placeholder="Airtable 데이터 전송 웹훅 URL">
                             <button onclick="ProductPosting.saveWebhookUrl('webhookUrl1')">저장</button>
                         </div>
                         <span id="savedIndicator1" class="saved-indicator" style="display: none;">✅ 저장됨</span>
                     </div>
+                    
                     <div class="form-group">
-                        <label for="webhookUrl2">웹훅 2 - Airtable → Buffer 전송</label>
+                        <label for="webhookUrl2">웹훅 2 - Airtable → Buffer 전송:</label>
                         <div class="url-input-group">
-                            <input type="text" id="webhookUrl2">
+                            <input type="text" id="webhookUrl2" placeholder="Buffer 포스팅 웹훅 URL">
                             <button onclick="ProductPosting.saveWebhookUrl('webhookUrl2')">저장</button>
                         </div>
                         <span id="savedIndicator2" class="saved-indicator" style="display: none;">✅ 저장됨</span>
                     </div>
-                </div>
-
-                <!-- 데이터 입력 -->
-                <div class="section">
-					<h2>📝 데이터 입력</h2>
-					<button class="clear-all" onclick="ProductPosting.clearAll()">🗑️ 전체 초기화</button>
-					
-                    <div class="form-group">
-                        <label for="productName">제품명</label>
-                        <input type="text" id="productName" placeholder="예: 애플 에어팟 프로 3세대">
+                    
+                    <div class="modal-actions">
+                        <button onclick="ProductPosting.closeWebhookModal()" class="btn-secondary">닫기</button>
                     </div>
-
-                    <div class="form-group">
-                        <label for="productPrice">제품가격</label>
-                        <input type="text" id="productPrice" placeholder="예: 359,000원">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="productInfo">제품정보</label>
-                        <textarea id="productInfo" rows="10" placeholder="제품의 주요 특징과 기능을 설명해주세요"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customerReview">고객리뷰</label>
-                        <textarea id="customerReview" rows="10" placeholder="고객들의 후기와 평가를 입력해주세요. 여러 리뷰가 있을 경우 줄바꿈으로 구분하세요.&#10;&#10;예:&#10;음질이 정말 깨끗하고 노이즈 캔슬링 성능이 뛰어나요.&#10;장시간 착용해도 편안합니다.&#10;배터리 지속시간도 만족스럽습니다."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="affiliateLink">구매링크</label>
-                        <textarea id="affiliateLink" rows="1" placeholder="구매 링크를 입력해주세요"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="affiliateNotice">대가성문구</label>
-                        <textarea id="affiliateNotice" rows="1" placeholder="어필리에이트 대가성 문구를 입력해 주세요."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>정보 이미지들 (최대 4개)</label>
-                        <div class="file-upload-area">
-                            <input type="file" id="infoFileInput" multiple accept="image/*" style="display: none;">
-                            <button onclick="document.getElementById('infoFileInput').click()">정보 이미지들 선택</button>
-                            <p>info-1.png, info-2.png, info-3.png, info-4.png 파일들을 업로드하세요</p>
-                        </div>
-                        <div id="infoFileList" class="file-list" style="display: none;"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>포스팅 이미지 (1개)</label>
-                        <div class="file-upload-area">
-                            <input type="file" id="postFileInput" accept="image/*" style="display: none;">
-                            <button onclick="document.getElementById('postFileInput').click()">포스팅 이미지 선택</button>
-                            <p>post.png 파일을 업로드하세요</p>
-                        </div>
-                        <div id="postFileList" class="file-list" style="display: none;"></div>
-                    </div>
-                </div>
-
-                <!-- 전송 -->
-                <div class="section">
-                    <h2>🚀 전송</h2>
-                    <button id="sendButton" onclick="ProductPosting.startTransferProcess()">제품 정보 전송하기</button>
-                    <div id="result"></div>
-                </div>
-            </div>
-
-            <!-- 전송 기록 탭 -->
-            <div id="history" class="tab-content">
-                <div class="section">
-                    <h2>📋 전송 기록</h2>
-                    <button onclick="ProductPosting.displayHistory()">기록 새로고침</button>
-                    <button class="secondary" onclick="ProductPosting.clearHistory()">기록 삭제</button>
-                    <div id="historyList" style="margin-top: 15px;"></div>
                 </div>
             </div>
         `;
     },
     
-    // 초기화 (기존과 동일)
+    // 초기화
     initialize: function() {
         this.loadSavedUrls();
-        this.loadHistory();
         this.setupFileHandlers();
     },
+
+    // 웹훅 모달 열기
+openWebhookModal: function() {
+    const modal = document.getElementById('postingWebhookModal');
+    modal.style.display = 'flex';  // 'block' 대신 'flex' 사용
+    this.loadSavedUrls();
+},
+
+// 웹훅 모달 닫기
+closeWebhookModal: function() {
+    document.getElementById('postingWebhookModal').style.display = 'none';
+},
     
-    // 저장된 URL 로드 (기존과 동일)
+    // 저장된 URL 로드
     loadSavedUrls: function() {
         const savedUrl1 = Utils.safeStorage.get('webhookUrl1', '');
         const savedUrl2 = Utils.safeStorage.get('webhookUrl2', '');
         
-        if (savedUrl1) {
-            document.getElementById('webhookUrl1').value = savedUrl1;
-            this.showSavedIndicator('savedIndicator1');
-        }
-        if (savedUrl2) {
-            document.getElementById('webhookUrl2').value = savedUrl2;
-            this.showSavedIndicator('savedIndicator2');
-        }
-    },
-    
-    // 히스토리 로드 (기존과 동일)
-    loadHistory: function() {
-        try {
-            const historyData = Utils.safeStorage.get('webhookHistory', '[]');
-            if (historyData !== '[]') {
-                this.sendHistory = JSON.parse(historyData);
+        setTimeout(() => {
+            const webhook1 = document.getElementById('webhookUrl1');
+            const webhook2 = document.getElementById('webhookUrl2');
+            
+            if (webhook1 && savedUrl1) {
+                webhook1.value = savedUrl1;
+                this.showSavedIndicator('savedIndicator1');
             }
-        } catch (e) {
-            console.log('히스토리 데이터 파싱 오류:', e);
-            this.sendHistory = [];
-        }
+            if (webhook2 && savedUrl2) {
+                webhook2.value = savedUrl2;
+                this.showSavedIndicator('savedIndicator2');
+            }
+        }, 100);
     },
     
-    // 파일 핸들러 설정 (기존과 동일)
+    // 파일 핸들러 설정
     setupFileHandlers: function() {
         const postFileInput = document.getElementById('postFileInput');
         const infoFileInput = document.getElementById('infoFileInput');
@@ -166,7 +162,7 @@ window.ProductPosting = {
         }
     },
     
-    // 포스팅 파일 처리 (기존과 동일)
+    // 포스팅 파일 처리
     handlePostFiles: function(files) {
         if (files.length > 1) {
             this.addLogEntry('포스팅 이미지는 1개만 업로드할 수 있습니다.', 'error');
@@ -184,7 +180,7 @@ window.ProductPosting = {
         });
     },
     
-    // 정보 파일 처리 (기존과 동일)
+    // 정보 파일 처리
     handleInfoFiles: function(files) {
         if (files.length > 4) {
             this.addLogEntry('정보 이미지는 최대 4개까지 업로드할 수 있습니다.', 'error');
@@ -202,7 +198,7 @@ window.ProductPosting = {
         });
     },
     
-    // 포스팅 파일 목록 업데이트 (기존과 동일)
+    // 포스팅 파일 목록 업데이트
     updatePostFileList: function() {
         const fileList = document.getElementById('postFileList');
         if (!fileList) return;
@@ -226,7 +222,7 @@ window.ProductPosting = {
         });
     },
     
-    // 정보 파일 목록 업데이트 (기존과 동일)
+    // 정보 파일 목록 업데이트
     updateInfoFileList: function() {
         const fileList = document.getElementById('infoFileList');
         if (!fileList) return;
@@ -250,7 +246,7 @@ window.ProductPosting = {
         });
     },
     
-    // 파일 삭제 (기존과 동일)
+    // 파일 삭제
     removePostFile: function(index) {
         this.postFiles.splice(index, 1);
         this.updatePostFileList();
@@ -261,7 +257,7 @@ window.ProductPosting = {
         this.updateInfoFileList();
     },
     
-    // 웹훅 URL 저장 (기존과 동일)
+    // 웹훅 URL 저장
     saveWebhookUrl: function(urlFieldId) {
         const url = document.getElementById(urlFieldId).value.trim();
         const indicatorId = urlFieldId.replace('webhookUrl', 'savedIndicator');
@@ -275,7 +271,7 @@ window.ProductPosting = {
         }
     },
     
-    // 저장 표시기 표시 (기존과 동일)
+    // 저장 표시기 표시
     showSavedIndicator: function(indicatorId) {
         const indicator = document.getElementById(indicatorId);
         if (indicator) {
@@ -286,26 +282,12 @@ window.ProductPosting = {
         }
     },
     
-    // 웹훅 레이블 가져오기 (기존과 동일)
+    // 웹훅 레이블 가져오기
     getWebhookLabel: function(urlFieldId) {
         return urlFieldId === 'webhookUrl1' ? '웹훅 1 (Airtable)' : '웹훅 2 (Buffer)';
     },
     
-    // 탭 전환 (기존과 동일)
-    switchTab: function(event, tabName) {
-        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        event.target.classList.add('active');
-        document.getElementById(tabName).classList.add('active');
-        
-        if (tabName === 'history') {
-            this.cleanupOldHistory();
-            this.displayHistory();
-        }
-    },
-    
-    // 로그 출력 (기존과 동일)
+    // 로그 출력
     addLogEntry: function(message, type) {
         const resultDiv = document.getElementById('result');
         const timestamp = new Date().toLocaleTimeString('ko-KR');
@@ -322,7 +304,7 @@ window.ProductPosting = {
         resultDiv.scrollTop = resultDiv.scrollHeight;
     },
     
-    // 로그 영역 초기화 (기존과 동일)
+    // 로그 영역 초기화
     clearLogArea: function() {
         const resultDiv = document.getElementById('result');
         if (resultDiv) {
@@ -330,14 +312,14 @@ window.ProductPosting = {
         }
     },
     
-    // 전체 초기화 (기존과 동일)
+    // 전체 초기화
     clearAll: function() {
         this.clearAllFields();
         this.clearLogArea();
         this.addLogEntry('전체 초기화가 완료되었습니다.', 'info');
     },
     
-    // 필드 초기화 (기존과 동일)
+    // 필드 초기화
     clearAllFields: function() {
         document.getElementById('productName').value = '';
         document.getElementById('productPrice').value = '';
@@ -351,7 +333,7 @@ window.ProductPosting = {
         this.updateInfoFileList();
     },
     
-    // 메시지 내용 생성 (기존과 동일)
+    // 메시지 내용 생성
     buildMessageContent: function() {
         const productName = document.getElementById('productName').value.trim();
         const productPrice = document.getElementById('productPrice').value.trim();
@@ -371,7 +353,7 @@ window.ProductPosting = {
         return content.trim();
     },
     
-    // 필드 비활성화/활성화 (기존과 동일)
+    // 필드 비활성화/활성화
     toggleFormFields: function(disabled) {
         const fields = [
             'productName', 'productPrice', 'productInfo', 
@@ -401,7 +383,7 @@ window.ProductPosting = {
         }
     },
     
-    // 전송 프로세스 시작 (기존과 동일)
+    // 전송 프로세스 시작
     startTransferProcess: function() {
         if (this.isTransferInProgress) {
             this.addLogEntry('이미 전송이 진행 중입니다. 잠시만 기다려주세요.', 'error');
@@ -428,7 +410,7 @@ window.ProductPosting = {
         this.sendWebhook('webhookUrl1');
     },
     
-    // 웹훅 1 전송 (기존과 동일)
+    // 웹훅 1 전송
     sendWebhook: function(urlFieldId) {
         const url = document.getElementById(urlFieldId).value.trim();
         const content = this.buildMessageContent();
@@ -524,32 +506,8 @@ window.ProductPosting = {
                         }
                     }, 3000);
                     
-                    this.saveToHistory({
-                        url: url,
-                        webhookType: webhookLabel,
-                        method: 'POST',
-                        data: JSON.stringify(discordMessage),
-                        status: response.status,
-                        success: response.ok,
-                        timestamp: new Date().toISOString(),
-                        duration: duration,
-                        response: responseData
-                    });
-                    
                     return;
                 }
-                
-                this.saveToHistory({
-                    url: url,
-                    webhookType: webhookLabel,
-                    method: 'POST',
-                    data: JSON.stringify(discordMessage),
-                    status: response.status,
-                    success: response.ok,
-                    timestamp: new Date().toISOString(),
-                    duration: duration,
-                    response: responseData
-                });
                 
                 this.addLogEntry(message, response.ok ? 'success' : 'error');
                 
@@ -565,24 +523,13 @@ window.ProductPosting = {
             
             const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
             
-            this.saveToHistory({
-                url: url,
-                webhookType: webhookLabel,
-                method: 'POST',
-                data: JSON.stringify(discordMessage),
-                error: error.message,
-                success: false,
-                timestamp: new Date().toISOString(),
-                duration: duration
-            });
-            
             this.addLogEntry(errorMessage, 'error');
             this.isTransferInProgress = false;
             this.toggleFormFields(false);
         });
     },
     
-    // 웹훅 2 전송 (기존과 동일)
+    // 웹훅 2 전송
     sendWebhookWithProductID: function(urlFieldId, productId) {
         const url = document.getElementById(urlFieldId).value.trim();
         
@@ -651,19 +598,6 @@ window.ProductPosting = {
                     this.toggleFormFields(false);
                 }
                 
-                this.saveToHistory({
-                    url: url,
-                    webhookType: webhookLabel + ' (Product_ID 전송)',
-                    method: 'POST',
-                    data: JSON.stringify(simpleMessage),
-                    status: response.status,
-                    success: response.ok,
-                    timestamp: new Date().toISOString(),
-                    duration: duration,
-                    response: text,
-                    productName: productId
-                });
-                
                 this.addLogEntry(message, response.ok ? 'success' : 'error');
             });
         })
@@ -673,106 +607,9 @@ window.ProductPosting = {
             
             const errorMessage = `${webhookLabel}\n상태: 네트워크 오류\n메시지: ${error.message}\n응답 시간: ${duration}ms`;
             
-            this.saveToHistory({
-                url: url,
-                webhookType: webhookLabel + ' (Product_ID 전송)',
-                method: 'POST',
-                data: JSON.stringify(simpleMessage),
-                error: error.message,
-                success: false,
-                timestamp: new Date().toISOString(),
-                duration: duration,
-                productName: productId
-            });
-            
             this.addLogEntry(errorMessage, 'error');
             this.isTransferInProgress = false;
             this.toggleFormFields(false);
         });
-    },
-    
-    // 히스토리에 저장 (기존과 동일)
-    saveToHistory: function(record) {
-        if (!record.productName) {
-            try {
-                const messageData = JSON.parse(record.data);
-                const content = messageData.content || '';
-                const productNameMatch = content.match(/\[제품명\]([^\n\[]+)/);
-                record.productName = productNameMatch ? productNameMatch[1].trim() : '';
-            } catch (e) {
-                record.productName = '';
-            }
-        }
-        
-        this.sendHistory.unshift(record);
-        this.cleanupOldHistory();
-        
-        if (this.sendHistory.length > 50) {
-            this.sendHistory = this.sendHistory.slice(0, 50);
-        }
-        
-        Utils.safeStorage.set('webhookHistory', JSON.stringify(this.sendHistory));
-    },
-    
-    // 1일 지난 기록 자동 삭제 (기존과 동일)
-    cleanupOldHistory: function() {
-        const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-        const validHistory = this.sendHistory.filter(record => {
-            try {
-                const recordTime = new Date(record.timestamp).getTime();
-                return recordTime > oneDayAgo;
-            } catch (err) {
-                return true;
-            }
-        });
-        
-        if (validHistory.length !== this.sendHistory.length) {
-            this.sendHistory = validHistory;
-            Utils.safeStorage.set('webhookHistory', JSON.stringify(this.sendHistory));
-        }
-    },
-    
-    // 히스토리 표시 (기존과 동일)
-    displayHistory: function() {
-        const historyDiv = document.getElementById('historyList');
-        if (!historyDiv) return;
-        
-        if (this.sendHistory.length === 0) {
-            historyDiv.innerHTML = '<p>전송 기록이 없습니다.</p>';
-            return;
-        }
-
-        let html = '';
-        this.sendHistory.forEach((record, index) => {
-            try {
-                const timestamp = new Date(record.timestamp).toLocaleString('ko-KR');
-                const timeAgo = Utils.getTimeAgo(record.timestamp);
-                const status = record.error ? `오류: ${record.error}` : `응답: ${record.status}`;
-                const productName = record.productName || '상품명 없음';
-                const webhookType = record.webhookType || '웹훅';
-                
-                html += `
-                    <div class="file-item" style="padding: 10px; margin-bottom: 5px; background: ${record.success ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
-                        <div>
-                            <strong>${webhookType}</strong> - ${timestamp} (${timeAgo})
-                            <br><strong>상품:</strong> ${productName}
-                            <br>URL: ${record.url ? record.url.substring(0, 60) + '...' : 'N/A'}
-                            <br>${status} (${record.duration}ms)
-                        </div>
-                    </div>
-                `;
-            } catch (err) {
-                console.log('기록 항목 처리 오류:', err);
-            }
-        });
-        historyDiv.innerHTML = html;
-    },
-    
-    // 히스토리 삭제 (기존과 동일)
-    clearHistory: function() {
-        this.sendHistory = [];
-        Utils.safeStorage.remove('webhookHistory');
-        this.displayHistory();
-        this.addLogEntry('전송 기록이 삭제되었습니다.', 'info');
     }
 };
