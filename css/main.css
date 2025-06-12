@@ -458,7 +458,8 @@ button:disabled {
 .clear-all {
     background: #dc3545;
     margin-bottom: 20px;
-    float: right;
+    float: none;
+    display: block;
 }
 
 .clear-all:hover:not(:disabled) {
