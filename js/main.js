@@ -111,7 +111,8 @@ window.AppState = {
     // 모드 전환
     toggleMode: function() {
         if (this.currentMode === 'free') {
-            document.getElementById('modeModal').style.display = 'block';
+            const modal = document.getElementById('modeModal');
+            modal.style.display = 'flex';  // 'block' 대신 'flex' 사용
             this.updateRevenueDisplay();
         } else {
             // Pro -> Free 다운그레이드
