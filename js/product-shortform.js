@@ -389,40 +389,24 @@ window.ProductShortForm = {
             return;
         }
 
-        // ⭐ 수정: Cut별 대본이 비어있으면 자동 분산, 있으면 기존 내용 유지
-		this.ensureCutScriptsAvailable();
+        // ⭐ 추가: 이미지 생성 시작 시 Cut별 대본 분산
+        this.distributeCutScripts();
 
-		// Cut 1, 2, 3, 5 대본 수집 (Cut 4는 제품 이미지이므로 제외)
-		const cuts = [1, 2, 3, 5];
-		const scriptsToGenerate = {};
+        // Cut 1, 3, 5 대본 수집 (Cut 4는 제품 이미지이므로 제외)
+        const cuts = [1, 3, 5];
+        const scriptsToGenerate = {};
+        
+        cuts.forEach(cutNum => {
+            const scriptElement = document.getElementById(`cut${cutNum}Script`);
+            if (scriptElement && scriptElement.value.trim()) {
+                scriptsToGenerate[`cut${cutNum}`] = scriptElement.value.trim();
+            }
+        });
 
-		cuts.forEach(cutNum => {
-			const scriptElement = document.getElementById(`cut${cutNum}Script`);
-			if (scriptElement && scriptElement.value.trim()) {
-				scriptsToGenerate[`cut${cutNum}`] = scriptElement.value.trim();
-			}
-		});
-
-		if (Object.keys(scriptsToGenerate).length === 0) {
-			Utils.showAchievement('대본을 먼저 생성하거나 Cut별 대본을 입력해주세요.', 'error');
-			return;
-		}
-		
-		// ⭐ 새로운 함수: Cut별 대본이 비어있을 때만 자동 분산
-		ensureCutScriptsAvailable: function() {
-			// Cut별 대본이 모두 비어있는지 확인
-			const isEmpty = [1, 2, 3, 5].every(cutNum => {
-				const scriptElement = document.getElementById(`cut${cutNum}Script`);
-				return !scriptElement || !scriptElement.value.trim();
-			});
-
-			// 모든 Cut이 비어있고 전체 대본이 있다면 자동 분산
-			if (isEmpty && this.generatedFullScript) {
-				this.distributeCutScripts();
-				Utils.showAchievement('전체 대본이 Cut별로 분산되었습니다! 📝');
-			}
-			// Cut에 이미 내용이 있다면 기존 내용을 유지 (사용자가 편집한 내용 보존)
-		},
+        if (Object.keys(scriptsToGenerate).length === 0) {
+            Utils.showAchievement('대본을 먼저 생성해주세요.', 'error');
+            return;
+        }
 
         this.isGenerating = true;
         this.showLoading(true);
@@ -477,7 +461,7 @@ window.ProductShortForm = {
         });
     },
 
-    // ⭐ 수정: Cut별 대본 분산 함수 (이제는 수동 호출시에만 사용)
+    // ⭐ 추가: Cut별 대본 분산 함수
     distributeCutScripts: function() {
         if (!this.generatedFullScript) {
             Utils.showAchievement('먼저 대본을 생성해주세요.', 'error');
@@ -497,12 +481,12 @@ window.ProductShortForm = {
         }
 
         // ⭐ 추가: 대본 분산 후 Cut 2, 4의 대본→이미지 버튼도 활성화
-        [1, 2, 3, 5].forEach(cutNum => {
-			const scriptToImageBtn = document.getElementById(`scriptToImageCut${cutNum}Btn`);
-			const promptToImageBtn = document.getElementById(`promptToImageCut${cutNum}Btn`);
-			if (scriptToImageBtn) scriptToImageBtn.disabled = false;
-			if (promptToImageBtn) promptToImageBtn.disabled = false;
-		});
+        [2, 4].forEach(cutNum => {
+            const scriptToImageBtn = document.getElementById(`scriptToImageCut${cutNum}Btn`);
+            if (scriptToImageBtn && cutNum !== 4) { // Cut 4는 제품 이미지라서 제외
+                scriptToImageBtn.disabled = false;
+            }
+        });
 
         Utils.showAchievement('대본이 Cut별로 분산되었습니다! 📝');
     },
@@ -511,8 +495,8 @@ window.ProductShortForm = {
     handleImageGenerationSuccess: function(result, duration) {
         let generatedCount = 0;
 
-        // Cut 1, 2, 3, 5 이미지 업데이트
-        [1, 2, 3, 5].forEach(cutNum => {
+        // Cut 1, 3, 5 이미지 업데이트
+        [1, 3, 5].forEach(cutNum => {
             const cutKey = `cut${cutNum}`;
             if (result[cutKey]) {
                 // 이미지 URL 업데이트
