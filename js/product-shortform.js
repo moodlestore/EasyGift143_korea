@@ -24,7 +24,7 @@ getHTML: function() {
                 <h2>📋 제품코드 입력</h2>
                 <div style="display: flex; gap: 15px; align-items: flex-end;">
 					<div style="flex: 1;">
-						<label for="productCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">제품코드:</label>
+						<label for="productCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">제품코드</label>
 						<input type="text" id="productCode" placeholder="예: EG-001, EG-002" style="width: 100%; height: 48px; padding: 12px; font-size: 14px; border: 2px solid #e1e5e9; border-radius: 8px; box-sizing: border-box;">
 					</div>
 					<button id="generateScriptBtn" onclick="ProductShortForm.generateScript()" style="height: 48px; padding: 12px 24px; font-size: 14px; border: none; border-radius: 8px; background: linear-gradient(45deg, #667eea, #764ba2); color: white; cursor: pointer; margin-top: 0; margin-bottom: 0; margin-right: 0;">📝 대본 생성</button>
@@ -74,7 +74,7 @@ getHTML: function() {
                     <h2>⚙️ 숏폼 웹훅 설정</h2>
                     
                     <div class="form-group">
-                        <label>웹훅 1 - 대본 생성:</label>
+                        <label>웹훅 1 - 대본 생성</label>
                         <div class="url-input-group">
                             <input type="text" id="shortformWebhook1" placeholder="대본 생성 웹훅 URL">
                             <button onclick="ProductShortForm.saveWebhook(1)">저장</button>
@@ -83,7 +83,7 @@ getHTML: function() {
                     </div>
                     
                     <div class="form-group">
-                        <label>웹훅 2 - 이미지 생성:</label>
+                        <label>웹훅 2 - 이미지 생성</label>
                         <div class="url-input-group">
                             <input type="text" id="shortformWebhook2" placeholder="이미지 생성 웹훅 URL">
                             <button onclick="ProductShortForm.saveWebhook(2)">저장</button>
@@ -109,14 +109,14 @@ getHTML: function() {
                 
                 <!-- 대본 -->
                 <div style="margin-bottom: 15px;">
-                    <label style="font-size: 14px; font-weight: 600;">대본:</label>
+                    <label style="font-size: 14px; font-weight: 600;">대본</label>
                     <textarea id="cut${cutNumber}Script" rows="3" placeholder="Cut ${cutNumber} 대본..." style="width: 100%; font-size: 13px;"></textarea>
                 </div>
                 
                 ${isProductImage ? `
                     <!-- 실제 제품 이미지 업로드 -->
                     <div style="margin-bottom: 15px;">
-                        <label style="font-size: 14px; font-weight: 600;">제품 이미지:</label>
+                        <label style="font-size: 14px; font-weight: 600;">제품 이미지</label>
                         <div style="margin-top: 5px;">
                             <input type="file" id="cut4ImageInput" accept="image/*" style="display: none;">
                             <button onclick="document.getElementById('cut4ImageInput').click()" style="background: #28a745; font-size: 13px; padding: 8px 12px;">📁 제품 이미지 업로드</button>
@@ -126,7 +126,7 @@ getHTML: function() {
                 ` : `
                     <!-- AI 생성 이미지 -->
                     <div style="margin-bottom: 15px;">
-                        <label style="font-size: 14px; font-weight: 600;">생성된 이미지:</label>
+                        <label style="font-size: 14px; font-weight: 600;">생성된 이미지</label>
                         <div id="cut${cutNumber}ImagePreview" style="margin-top: 5px; text-align: center; min-height: 120px; border: 2px dashed #ddd; border-radius: 5px; display: flex; align-items: center; justify-content: center; background: #f9f9f9;">
                             <span style="color: #666;">이미지가 생성되면 여기에 표시됩니다</span>
                         </div>
@@ -134,7 +134,7 @@ getHTML: function() {
                     
                     <!-- 이미지 프롬프트 -->
                     <div style="margin-bottom: 15px;">
-                        <label style="font-size: 14px; font-weight: 600;">이미지 프롬프트:</label>
+                        <label style="font-size: 14px; font-weight: 600;">이미지 프롬프트</label>
                         <textarea id="cut${cutNumber}Prompt" rows="2" placeholder="이미지 프롬프트..." style="width: 100%; font-size: 12px; font-family: 'Courier New', monospace;"></textarea>
                     </div>
                     
