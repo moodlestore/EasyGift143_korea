@@ -680,7 +680,7 @@ window.EngagementAssistant = {
 	openAccountEditor: function() {
 		const modal = document.getElementById('accountEditorModal');
 		this.updateCountryList();
-		modal.style.display = 'block';
+		modal.style.display = 'flex';  // 'block' 대신 'flex' 사용
 	},
 
 	// 계정 편집 모달 닫기
