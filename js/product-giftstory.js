@@ -157,8 +157,9 @@ window.ProductGiftStory = {
 
     // 웹훅 모달 열기
     openWebhookModal: function() {
-        document.getElementById('giftStoryWebhookModal').style.display = 'block';
-        this.loadSavedWebhooks(); // 최신 데이터 로드
+        const modal = document.getElementById('giftStoryWebhookModal');
+        modal.style.display = 'flex';  // 'block' 대신 'flex' 사용
+        this.loadSavedWebhooks();
     },
 
     // 웹훅 모달 닫기
