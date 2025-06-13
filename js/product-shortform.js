@@ -429,6 +429,16 @@ window.ProductShortForm = {
             Utils.showAchievement('먼저 대본을 생성해주세요.', 'error');
             return;
         }
+		
+		// 현재 에디트 박스의 수정된 내용을 반영
+		const currentScript = document.getElementById('generatedScript').value.trim();
+		if (currentScript) {
+			this.generatedFullScript = currentScript;
+		} else {
+			// 에디트 박스가 비어있으면 경고
+			Utils.showAchievement('대본이 비어있습니다. 내용을 확인해주세요.', 'error');
+			return;
+		}
 
         // 1. 대본을 Cut별로 분산
         this.distributeCutScripts();
