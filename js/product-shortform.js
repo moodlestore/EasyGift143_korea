@@ -1,4 +1,4 @@
-// 숏폼 콘텐츠 생성 모듈 (수정 버전)
+// 숏폼 콘텐츠 생성 모듈 (순차 처리 버전)
 window.ProductShortForm = {
     // 상태 관리
     webhookUrls: {
@@ -15,6 +15,10 @@ window.ProductShortForm = {
     },
     productImageFile: null,
     generatedFullScript: '', // 전체 대본 저장용
+    
+    // 순차 처리용 상태 변수
+    currentProcessingQueue: [], // 처리할 Cut 목록
+    currentProcessingIndex: 0,  // 현재 처리 중인 인덱스
 
     // HTML 반환
     getHTML: function() {
@@ -332,16 +336,14 @@ window.ProductShortForm = {
         });
     },
 
-    // 대본 생성 성공 처리 (수정: Cut별 분산 제거)
+    // 대본 생성 성공 처리
     handleScriptGenerationSuccess: function(result, duration) {
-        // 전체 대본만 표시하고 내부 변수에 저장
+        // 전체 대본 표시하고 내부 저장
         const scriptTextarea = document.getElementById('generatedScript');
         if (scriptTextarea && result.script) {
             scriptTextarea.value = result.script;
-            this.generatedFullScript = result.script; // 내부 저장
+            this.generatedFullScript = result.script;
         }
-
-        // ⭐ 수정: Cut별 대본 분산을 여기서 하지 않음
 
         // 이미지 생성 버튼 활성화
         const generateImagesBtn = document.getElementById('generateImagesBtn');
@@ -375,7 +377,41 @@ window.ProductShortForm = {
         return cuts;
     },
 
-    // ⭐ 수정: 이미지 생성 시작 시 Cut별 대본 분산 실행
+    // Cut별 대본 분산
+    distributeCutScripts: function() {
+        if (!this.generatedFullScript) {
+            Utils.showAchievement('먼저 대본을 생성해주세요.', 'error');
+            return;
+        }
+
+        // 저장된 전체 대본에서 Cut별로 분리
+        const cuts = this.parseScriptFromText(this.generatedFullScript);
+        
+        // Cut 1-5 대본을 각각의 텍스트 박스에 배치
+        for (let i = 1; i <= 5; i++) {
+            const cutScript = document.getElementById(`cut${i}Script`);
+            if (cutScript && cuts[`cut${i}`]) {
+                cutScript.value = cuts[`cut${i}`];
+                this.cuts[`cut${i}`].script = cuts[`cut${i}`];
+            }
+        }
+
+        // 개별 버튼들 활성화
+        [1, 2, 3, 5].forEach(cutNum => {
+            const scriptToImageBtn = document.getElementById(`scriptToImageCut${cutNum}Btn`);
+            const promptToImageBtn = document.getElementById(`promptToImageCut${cutNum}Btn`);
+            if (scriptToImageBtn) {
+                scriptToImageBtn.disabled = false;
+            }
+            if (promptToImageBtn) {
+                promptToImageBtn.disabled = false;
+            }
+        });
+
+        Utils.showAchievement('대본이 Cut별로 분산되었습니다! 📝');
+    },
+
+    // ⭐ 수정된 이미지 생성 시작 (순차 처리)
     startImageGeneration: function() {
         if (this.isGenerating) {
             Utils.showAchievement('이미지 생성이 진행 중입니다.', 'error');
@@ -389,34 +425,53 @@ window.ProductShortForm = {
             return;
         }
 
-        // ⭐ 추가: 이미지 생성 시작 시 Cut별 대본 분산
-        this.distributeCutScripts();
-
-        // Cut 1, 3, 5 대본 수집 (Cut 4는 제품 이미지이므로 제외)
-        const cuts = [1, 3, 5];
-        const scriptsToGenerate = {};
-        
-        cuts.forEach(cutNum => {
-            const scriptElement = document.getElementById(`cut${cutNum}Script`);
-            if (scriptElement && scriptElement.value.trim()) {
-                scriptsToGenerate[`cut${cutNum}`] = scriptElement.value.trim();
-            }
-        });
-
-        if (Object.keys(scriptsToGenerate).length === 0) {
-            Utils.showAchievement('대본을 먼저 생성해주세요.', 'error');
+        if (!this.generatedFullScript) {
+            Utils.showAchievement('먼저 대본을 생성해주세요.', 'error');
             return;
         }
 
+        // 1. 대본을 Cut별로 분산
+        this.distributeCutScripts();
+
+        // 2. 처리할 Cut 목록 설정 (Cut 4 제외)
+        this.currentProcessingQueue = [1, 2, 3, 5];
+        this.currentProcessingIndex = 0;
+
+        // 3. 순차 처리 시작
         this.isGenerating = true;
         this.showLoading(true);
-        this.showStatus('이미지를 생성하고 있습니다...', 'info');
+        this.showStatus('이미지를 순차적으로 생성하고 있습니다...', 'info');
 
+        this.processNextCut();
+    },
+
+    // ⭐ 새로운 함수: 다음 Cut 처리
+    processNextCut: function() {
+        if (this.currentProcessingIndex >= this.currentProcessingQueue.length) {
+            // 모든 Cut 처리 완료
+            this.isGenerating = false;
+            this.showLoading(false);
+            this.showStatus('모든 이미지 생성이 완료되었습니다! 🎉', 'success');
+            Utils.showAchievement('모든 Cut의 이미지가 생성되었습니다! 🎨');
+            return;
+        }
+
+        const currentCut = this.currentProcessingQueue[this.currentProcessingIndex];
+        const webhookUrl = this.webhookUrls.imageGeneration;
+        
+        this.showStatus(`Cut ${currentCut} 이미지를 생성하고 있습니다... (${this.currentProcessingIndex + 1}/${this.currentProcessingQueue.length})`, 'info');
+
+        // 웹훅 데이터 구성: 전체 대본 + 현재 처리할 Cut 정보
         const requestData = {
-            content: JSON.stringify(scriptsToGenerate),
+            content: JSON.stringify({
+                full_script: this.generatedFullScript,
+                current_cut: currentCut,
+                cut_script: this.cuts[`cut${currentCut}`].script || document.getElementById(`cut${currentCut}Script`)?.value || '',
+                sequential_processing: true
+            }),
             author: {
                 id: "123456789",
-                username: "image_generator",
+                username: "sequential_image_generator",
                 discriminator: "0001"
             },
             timestamp: new Date().toISOString(),
@@ -438,11 +493,10 @@ window.ProductShortForm = {
                 if (response.ok) {
                     try {
                         const result = JSON.parse(text);
-                        this.handleImageGenerationSuccess(result, duration);
+                        this.handleSequentialImageSuccess(currentCut, result, duration);
                     } catch (parseError) {
-                        // JSON 파싱 실패 시 기본 처리
-                        this.showStatus(`이미지 생성 응답 파싱 실패 (${duration}ms)`, 'error');
-                        Utils.showAchievement('이미지 생성 응답을 처리할 수 없습니다.', 'error');
+                        console.error(`Cut ${currentCut} 응답 파싱 실패:`, parseError);
+                        this.handleSequentialImageError(currentCut, new Error('응답 파싱 실패'), duration);
                     }
                 } else {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -451,93 +505,61 @@ window.ProductShortForm = {
         })
         .catch(error => {
             const duration = Date.now() - startTime;
-            console.error('이미지 생성 오류:', error);
-            this.showStatus(`이미지 생성 실패: ${error.message} (${duration}ms)`, 'error');
-            Utils.showAchievement('이미지 생성에 실패했습니다. 다시 시도해주세요.', 'error');
-        })
-        .finally(() => {
-            this.isGenerating = false;
-            this.showLoading(false);
+            console.error(`Cut ${currentCut} 이미지 생성 오류:`, error);
+            this.handleSequentialImageError(currentCut, error, duration);
         });
     },
 
-    // ⭐ 추가: Cut별 대본 분산 함수
-    distributeCutScripts: function() {
-        if (!this.generatedFullScript) {
-            Utils.showAchievement('먼저 대본을 생성해주세요.', 'error');
-            return;
-        }
-
-        // 저장된 전체 대본에서 Cut별로 분리
-        const cuts = this.parseScriptFromText(this.generatedFullScript);
+    // ⭐ 새로운 함수: 순차 이미지 생성 성공 처리
+    handleSequentialImageSuccess: function(cutNumber, result, duration) {
+        const cutKey = `cut${cutNumber}`;
         
-        // Cut 1-5 대본을 각각의 텍스트 박스에 배치
-        for (let i = 1; i <= 5; i++) {
-            const cutScript = document.getElementById(`cut${i}Script`);
-            if (cutScript && cuts[`cut${i}`]) {
-                cutScript.value = cuts[`cut${i}`];
-                this.cuts[`cut${i}`].script = cuts[`cut${i}`];
+        // 해당 Cut의 이미지와 프롬프트 업데이트
+        if (result.image_url) {
+            const imagePreview = document.getElementById(`cut${cutNumber}ImagePreview`);
+            if (imagePreview) {
+                imagePreview.innerHTML = `
+                    <img src="${result.image_url}" alt="Cut ${cutNumber} 이미지" 
+                         style="max-width: 150px; max-height: 150px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                `;
             }
+            this.cuts[cutKey].image = result.image_url;
         }
 
-        // ⭐ 추가: 대본 분산 후 Cut 2, 4의 대본→이미지 버튼도 활성화
-        [2, 4].forEach(cutNum => {
-            const scriptToImageBtn = document.getElementById(`scriptToImageCut${cutNum}Btn`);
-            if (scriptToImageBtn && cutNum !== 4) { // Cut 4는 제품 이미지라서 제외
-                scriptToImageBtn.disabled = false;
+        if (result.prompt) {
+            const promptElement = document.getElementById(`cut${cutNumber}Prompt`);
+            if (promptElement) {
+                promptElement.value = result.prompt;
             }
-        });
+            this.cuts[cutKey].prompt = result.prompt;
+        }
 
-        Utils.showAchievement('대본이 Cut별로 분산되었습니다! 📝');
+        Utils.showAchievement(`Cut ${cutNumber} 이미지 생성 완료! (${duration}ms) ✨`);
+
+        // 다음 Cut 처리로 이동
+        this.currentProcessingIndex++;
+        
+        // 잠시 대기 후 다음 Cut 처리 (서버 부하 방지)
+        setTimeout(() => {
+            this.processNextCut();
+        }, 1000);
     },
 
-    // 이미지 생성 성공 처리
-    handleImageGenerationSuccess: function(result, duration) {
-        let generatedCount = 0;
-
-        // Cut 1, 3, 5 이미지 업데이트
-        [1, 3, 5].forEach(cutNum => {
-            const cutKey = `cut${cutNum}`;
-            if (result[cutKey]) {
-                // 이미지 URL 업데이트
-                if (result[cutKey].image_url) {
-                    const imagePreview = document.getElementById(`cut${cutNum}ImagePreview`);
-                    if (imagePreview) {
-                        imagePreview.innerHTML = `
-                            <img src="${result[cutKey].image_url}" alt="Cut ${cutNum} 이미지" 
-                                 style="max-width: 150px; max-height: 150px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        `;
-                    }
-                    this.cuts[cutKey].image = result[cutKey].image_url;
-                    generatedCount++;
-                }
-
-                // 프롬프트 업데이트
-                if (result[cutKey].prompt) {
-                    const promptElement = document.getElementById(`cut${cutNum}Prompt`);
-                    if (promptElement) {
-                        promptElement.value = result[cutKey].prompt;
-                    }
-                    this.cuts[cutKey].prompt = result[cutKey].prompt;
-                }
-
-                // 개별 버튼들 활성화
-                const scriptToImageBtn = document.getElementById(`scriptToImageCut${cutNum}Btn`);
-                const promptToImageBtn = document.getElementById(`promptToImageCut${cutNum}Btn`);
-                if (scriptToImageBtn) {
-                    scriptToImageBtn.disabled = false;
-                }
-                if (promptToImageBtn) {
-                    promptToImageBtn.disabled = false;
-                }
-            }
-        });
-
-        this.showStatus(`이미지 생성 완료! ${generatedCount}개 이미지가 생성되었습니다. (${duration}ms) 🖼️`, 'success');
-        Utils.showAchievement(`${generatedCount}개의 이미지가 생성되었습니다! 🎨`);
+    // ⭐ 새로운 함수: 순차 이미지 생성 오류 처리
+    handleSequentialImageError: function(cutNumber, error, duration) {
+        console.error(`Cut ${cutNumber} 처리 실패:`, error);
+        
+        Utils.showAchievement(`Cut ${cutNumber} 이미지 생성 실패: ${error.message}`, 'error');
+        
+        // 오류가 발생해도 다음 Cut으로 진행
+        this.currentProcessingIndex++;
+        
+        setTimeout(() => {
+            this.processNextCut();
+        }, 1000);
     },
 
-    // ⭐ 새로운 함수: 대본에서 프롬프트+이미지 한번에 생성
+    // 대본에서 프롬프트+이미지 한번에 생성 (개별 Cut용)
     generateFromScript: function(cutNumber) {
         if (this.isGenerating) {
             Utils.showAchievement('이미지 생성이 진행 중입니다.', 'error');
@@ -563,8 +585,10 @@ window.ProductShortForm = {
 
         const requestData = {
             content: JSON.stringify({
-                [`cut${cutNumber}`]: scriptElement.value.trim(),
-                script_to_image: true // 대본에서 프롬프트+이미지 생성
+                full_script: this.generatedFullScript,
+                current_cut: cutNumber,
+                cut_script: scriptElement.value.trim(),
+                script_to_image: true
             }),
             author: {
                 id: "123456789",
@@ -612,7 +636,7 @@ window.ProductShortForm = {
         });
     },
 
-    // ⭐ 새로운 함수: 프롬프트에서 이미지만 재생성
+    // 프롬프트에서 이미지만 재생성 (개별 Cut용)
     generateFromPrompt: function(cutNumber) {
         if (this.isGenerating) {
             Utils.showAchievement('이미지 생성이 진행 중입니다.', 'error');
@@ -638,8 +662,10 @@ window.ProductShortForm = {
 
         const requestData = {
             content: JSON.stringify({
-                [`cut${cutNumber}`]: promptElement.value.trim(),
-                prompt_to_image: true // 프롬프트에서 이미지만 생성
+                full_script: this.generatedFullScript,
+                current_cut: cutNumber,
+                image_prompt: promptElement.value.trim(),
+                prompt_to_image: true
             }),
             author: {
                 id: "123456789",
@@ -687,30 +713,30 @@ window.ProductShortForm = {
         });
     },
 
-    // ⭐ 새로운 함수: 대본→이미지 생성 성공 처리
+    // 대본→이미지 생성 성공 처리
     handleScriptToImageSuccess: function(cutNumber, result, duration) {
         const cutKey = `cut${cutNumber}`;
         
-        if (result[cutKey]) {
+        if (result.image_url || result.prompt) {
             // 프롬프트 업데이트
-            if (result[cutKey].prompt) {
+            if (result.prompt) {
                 const promptElement = document.getElementById(`cut${cutNumber}Prompt`);
                 if (promptElement) {
-                    promptElement.value = result[cutKey].prompt;
+                    promptElement.value = result.prompt;
                 }
-                this.cuts[cutKey].prompt = result[cutKey].prompt;
+                this.cuts[cutKey].prompt = result.prompt;
             }
 
             // 이미지 업데이트
-            if (result[cutKey].image_url) {
+            if (result.image_url) {
                 const imagePreview = document.getElementById(`cut${cutNumber}ImagePreview`);
                 if (imagePreview) {
                     imagePreview.innerHTML = `
-                        <img src="${result[cutKey].image_url}" alt="Cut ${cutNumber} 이미지" 
+                        <img src="${result.image_url}" alt="Cut ${cutNumber} 이미지" 
                              style="max-width: 150px; max-height: 150px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     `;
                 }
-                this.cuts[cutKey].image = result[cutKey].image_url;
+                this.cuts[cutKey].image = result.image_url;
             }
 
             // 프롬프트→이미지 버튼 활성화
@@ -727,19 +753,19 @@ window.ProductShortForm = {
         }
     },
 
-    // ⭐ 새로운 함수: 프롬프트→이미지 재생성 성공 처리
+    // 프롬프트→이미지 재생성 성공 처리
     handlePromptToImageSuccess: function(cutNumber, result, duration) {
         const cutKey = `cut${cutNumber}`;
         
-        if (result[cutKey] && result[cutKey].image_url) {
+        if (result.image_url) {
             const imagePreview = document.getElementById(`cut${cutNumber}ImagePreview`);
             if (imagePreview) {
                 imagePreview.innerHTML = `
-                    <img src="${result[cutKey].image_url}" alt="Cut ${cutNumber} 이미지" 
+                    <img src="${result.image_url}" alt="Cut ${cutNumber} 이미지" 
                          style="max-width: 150px; max-height: 150px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 `;
             }
-            this.cuts[cutKey].image = result[cutKey].image_url;
+            this.cuts[cutKey].image = result.image_url;
 
             this.showStatus(`Cut ${cutNumber} 이미지 재생성 완료! (${duration}ms) 🖼️`, 'success');
             Utils.showAchievement(`Cut ${cutNumber} 새로운 이미지가 생성되었습니다! 🎨`);
