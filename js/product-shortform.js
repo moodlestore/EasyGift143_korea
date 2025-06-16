@@ -1,4 +1,4 @@
-// 숏폼 콘텐츠 생성 모듈 (캐러셀 기능 추가 버전)
+// 숏폼 콘텐츠 생성 모듈 (이미지 확대 모달 기능 포함)
 window.ProductShortForm = {
    // 상태 관리
    webhookUrls: {
@@ -22,6 +22,14 @@ window.ProductShortForm = {
    
    // 이미지 캐러셀 데이터 저장
    imageCarousels: {},
+
+   // 이미지 모달 관련 상태
+   imageModal: {
+       isOpen: false,
+       currentCut: null,
+       currentIndex: 0,
+       images: []
+   },
 
    // HTML 반환
    getHTML: function() {
@@ -217,7 +225,7 @@ window.ProductShortForm = {
        this.showStatus('제품 이미지가 업로드되었습니다.', 'success');
    },
 
-   // 이미지 캐러셀 생성 함수
+   // 이미지 캐러셀 생성 함수 (클릭 이벤트 추가)
    createImageCarousel: function(cutNumber, images, prompt) {
        if (!images || images.length === 0) return;
        
@@ -233,7 +241,11 @@ window.ProductShortForm = {
        const carouselHTML = `
            <div class="carousel-container">
                <button class="carousel-nav prev" onclick="ProductShortForm.prevImage(${cutNumber})">‹</button>
-               <img class="carousel-image" id="cut${cutNumber}CarouselImage" src="${images[0]}" alt="Cut ${cutNumber} 이미지">
+               <img class="carousel-image" id="cut${cutNumber}CarouselImage" 
+                    src="${images[0]}" 
+                    alt="Cut ${cutNumber} 이미지"
+                    onclick="ProductShortForm.openImageModal(${cutNumber}, 0)"
+                    style="cursor: pointer;">
                <button class="carousel-nav next" onclick="ProductShortForm.nextImage(${cutNumber})">›</button>
                <div class="carousel-indicator" id="cut${cutNumber}Indicator">1 / ${images.length}</div>
            </div>
@@ -299,6 +311,188 @@ window.ProductShortForm = {
        if (nextBtn) {
            nextBtn.disabled = carousel.currentIndex === carousel.images.length - 1;
        }
+   },
+
+   // 이미지 모달 열기
+   openImageModal: function(cutNumber, imageIndex = null) {
+       const carousel = this.imageCarousels[`cut${cutNumber}`];
+       if (!carousel || !carousel.images.length) return;
+       
+       // 이미지 인덱스가 지정되지 않으면 현재 캐러셀 인덱스 사용
+       const startIndex = imageIndex !== null ? imageIndex : carousel.currentIndex;
+       
+       this.imageModal = {
+           isOpen: true,
+           currentCut: cutNumber,
+           currentIndex: startIndex,
+           images: carousel.images
+       };
+       
+       // 모달이 없으면 생성
+       if (!document.getElementById('imageModal')) {
+           this.createImageModal();
+       }
+       
+       // 모달 표시 및 이미지 업데이트
+       const modal = document.getElementById('imageModal');
+       modal.style.display = 'flex';
+       this.updateModalImage();
+       
+       // ESC 키로 닫기
+       document.addEventListener('keydown', this.handleModalKeydown.bind(this));
+   },
+
+   // 이미지 모달 생성
+   createImageModal: function() {
+       const modalHTML = `
+           <div id="imageModal" class="modal" style="display: none; z-index: 3000;">
+               <div class="modal-content" style="width: auto; max-width: 800px; max-height: 90vh; padding: 30px; position: relative; overflow: visible;">
+                   <span class="close" onclick="ProductShortForm.closeImageModal()" style="font-size: 30px; top: 10px; right: 15px;">&times;</span>
+                   
+                   <div style="text-align: center; margin-bottom: 20px;">
+                       <h3 id="modalTitle" style="margin: 0; color: #667eea;">Cut 1 이미지 미리보기</h3>
+                   </div>
+                   
+					   <div style="position: relative; text-align: center;">
+                       <button id="modalPrevBtn" onclick="ProductShortForm.prevModalImage()" 
+                               style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); 
+                                      background: rgba(0,0,0,0.8); color: white; border: none; 
+                                      width: 45px; height: 45px; border-radius: 50%; font-size: 20px; cursor: pointer; 
+                                      box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s ease;">‹</button>
+                       
+                       <img id="modalImage" src="" alt="확대 이미지" 
+                            style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                       
+                       <button id="modalNextBtn" onclick="ProductShortForm.nextModalImage()" 
+                               style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
+                                      background: rgba(0,0,0,0.8); color: white; border: none; 
+                                      width: 45px; height: 45px; border-radius: 50%; font-size: 20px; cursor: pointer; 
+                                      box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s ease;">›</button>
+                   </div>
+                   
+                   <div style="text-align: center; margin-top: 15px;">
+                       <span id="modalIndicator" style="background: rgba(0,0,0,0.7); color: white; 
+                                                       padding: 8px 15px; border-radius: 15px; font-weight: 600;">1 / 4</span>
+                   </div>
+                   
+                   <div style="text-align: center; margin-top: 15px; width: 100%; display: flex; justify-content: center; gap: 10px;">
+                       <button onclick="ProductShortForm.downloadModalImage()" 
+                               style="background: #28a745; color: white; padding: 10px 20px; border: none; 
+                                      border-radius: 5px; cursor: pointer;">💾 다운로드</button>
+                       <button onclick="ProductShortForm.copyModalImageUrl()" 
+                               style="background: #17a2b8; color: white; padding: 10px 20px; border: none; 
+                                      border-radius: 5px; cursor: pointer;">📋 URL 복사</button>
+                   </div>
+               </div>
+           </div>
+       `;
+       
+       document.body.insertAdjacentHTML('beforeend', modalHTML);
+   },
+
+   // 모달 이미지 업데이트
+   updateModalImage: function() {
+       if (!this.imageModal.isOpen) return;
+       
+       const modalImage = document.getElementById('modalImage');
+       const modalTitle = document.getElementById('modalTitle');
+       const modalIndicator = document.getElementById('modalIndicator');
+       const modalPrevBtn = document.getElementById('modalPrevBtn');
+       const modalNextBtn = document.getElementById('modalNextBtn');
+       
+       if (modalImage) {
+           modalImage.src = this.imageModal.images[this.imageModal.currentIndex];
+       }
+       
+       if (modalTitle) {
+           modalTitle.textContent = `Cut ${this.imageModal.currentCut} 이미지 미리보기`;
+       }
+       
+       if (modalIndicator) {
+           modalIndicator.textContent = `${this.imageModal.currentIndex + 1} / ${this.imageModal.images.length}`;
+       }
+       
+       // 버튼 상태 업데이트
+       if (modalPrevBtn) {
+           modalPrevBtn.disabled = this.imageModal.currentIndex === 0;
+           modalPrevBtn.style.opacity = this.imageModal.currentIndex === 0 ? '0.3' : '1';
+       }
+       
+       if (modalNextBtn) {
+           modalNextBtn.disabled = this.imageModal.currentIndex === this.imageModal.images.length - 1;
+           modalNextBtn.style.opacity = this.imageModal.currentIndex === this.imageModal.images.length - 1 ? '0.3' : '1';
+       }
+   },
+
+   // 모달에서 이전 이미지
+   prevModalImage: function() {
+       if (!this.imageModal.isOpen || this.imageModal.currentIndex === 0) return;
+       
+       this.imageModal.currentIndex--;
+       this.updateModalImage();
+   },
+
+   // 모달에서 다음 이미지
+   nextModalImage: function() {
+       if (!this.imageModal.isOpen || this.imageModal.currentIndex === this.imageModal.images.length - 1) return;
+       
+       this.imageModal.currentIndex++;
+       this.updateModalImage();
+   },
+
+   // 이미지 모달 닫기
+   closeImageModal: function() {
+       const modal = document.getElementById('imageModal');
+       if (modal) {
+           modal.style.display = 'none';
+       }
+       
+       this.imageModal.isOpen = false;
+       document.removeEventListener('keydown', this.handleModalKeydown.bind(this));
+   },
+
+   // 모달 키보드 이벤트 처리
+   handleModalKeydown: function(e) {
+       if (!this.imageModal.isOpen) return;
+       
+       switch(e.key) {
+           case 'Escape':
+               this.closeImageModal();
+               break;
+           case 'ArrowLeft':
+               this.prevModalImage();
+               break;
+           case 'ArrowRight':
+               this.nextModalImage();
+               break;
+       }
+   },
+
+   // 모달 이미지 다운로드
+   downloadModalImage: function() {
+       if (!this.imageModal.isOpen) return;
+       
+       const currentImageUrl = this.imageModal.images[this.imageModal.currentIndex];
+       const fileName = `cut${this.imageModal.currentCut}_image${this.imageModal.currentIndex + 1}.png`;
+       
+       // 다운로드 링크 생성
+       const link = document.createElement('a');
+       link.href = currentImageUrl;
+       link.download = fileName;
+       link.target = '_blank';
+       document.body.appendChild(link);
+       link.click();
+       document.body.removeChild(link);
+       
+       Utils.showAchievement('이미지 다운로드가 시작되었습니다! 📥');
+   },
+
+   // 모달 이미지 URL 복사
+   copyModalImageUrl: function() {
+       if (!this.imageModal.isOpen) return;
+       
+       const currentImageUrl = this.imageModal.images[this.imageModal.currentIndex];
+       Utils.copyText(currentImageUrl);
    },
 
    // 웹훅 모달 열기
@@ -853,97 +1047,97 @@ window.ProductShortForm = {
        });
    },
 
-	// 프롬프트에서 이미지만 재생성 (간단한 프롬프트만 전송)
-	generateFromPrompt: function(cutNumber) {
-		if (this.isGenerating) {
-			Utils.showAchievement('이미지 생성이 진행 중입니다.', 'error');
-			return;
-		}
+   // 프롬프트에서 이미지만 재생성 (간단한 프롬프트만 전송)
+   generateFromPrompt: function(cutNumber) {
+       if (this.isGenerating) {
+           Utils.showAchievement('이미지 생성이 진행 중입니다.', 'error');
+           return;
+       }
 
-		const promptElement = document.getElementById(`cut${cutNumber}Prompt`);
-		if (!promptElement || !promptElement.value.trim()) {
-			Utils.showAchievement(`Cut ${cutNumber}의 프롬프트를 입력해주세요.`, 'error');
-			return;
-		}
+       const promptElement = document.getElementById(`cut${cutNumber}Prompt`);
+       if (!promptElement || !promptElement.value.trim()) {
+           Utils.showAchievement(`Cut ${cutNumber}의 프롬프트를 입력해주세요.`, 'error');
+           return;
+       }
 
-		const webhookUrl = this.webhookUrls.imageGeneration;
-		if (!webhookUrl) {
-			Utils.showAchievement('웹훅 2 (이미지 생성) URL을 설정해주세요.', 'error');
-			this.openWebhookModal();
-			return;
-		}
+       const webhookUrl = this.webhookUrls.imageGeneration;
+       if (!webhookUrl) {
+           Utils.showAchievement('웹훅 2 (이미지 생성) URL을 설정해주세요.', 'error');
+           this.openWebhookModal();
+           return;
+       }
 
-		this.isGenerating = true;
-		this.showLoading(true);
-		this.showStatus(`Cut ${cutNumber} 이미지를 재생성하고 있습니다...`, 'info');
+       this.isGenerating = true;
+       this.showLoading(true);
+       this.showStatus(`Cut ${cutNumber} 이미지를 재생성하고 있습니다...`, 'info');
 
-		// 간단하게 프롬프트만 전송
-		const requestData = {
-			content: JSON.stringify({
-				"prompt": promptElement.value.trim()
-			}),
-			author: {
-				id: "123456789",
-				username: "prompt_to_image_generator",
-				discriminator: "0001"
-			},
-			timestamp: new Date().toISOString(),
-			attachments: []
-		};
+       // 간단하게 프롬프트만 전송
+       const requestData = {
+           content: JSON.stringify({
+               "prompt": promptElement.value.trim()
+           }),
+           author: {
+               id: "123456789",
+               username: "prompt_to_image_generator",
+               discriminator: "0001"
+           },
+           timestamp: new Date().toISOString(),
+           attachments: []
+       };
 
-		const startTime = Date.now();
+       const startTime = Date.now();
 
-		fetch(webhookUrl, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(requestData)
-		})
-		.then(response => {
-			const duration = Date.now() - startTime;
-			return response.text().then(text => {
-				console.log('=== generateFromPrompt 응답 ===');
-				console.log(text);
-				console.log('===============================');
-				
-				if (response.ok) {
-					let result = null;
-					
-					try {
-						// JSON 파싱 시도
-						result = JSON.parse(text);
-						console.log('JSON 파싱 성공:', result);
-					} catch (parseError) {
-						console.log('JSON 파싱 실패, 텍스트 파싱 시도...');
-						
-						// 텍스트에서 성공 감지 및 데이터 추출
-						if (text.includes('이미지 프롬프트') || text.includes('이미지 URL')) {
-							result = this.parseTextResponse(text);
-							console.log('텍스트 파싱 결과:', result);
-						} else {
-							throw new Error('응답을 파싱할 수 없습니다: ' + text.substring(0, 100));
-						}
-					}
-					
-					// 성공 처리
-					this.handlePromptToImageSuccess(cutNumber, result, duration);
-				} else {
-					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-				}
-			});
-		})
-		.catch(error => {
-			const duration = Date.now() - startTime;
-			console.error(`Cut ${cutNumber} 이미지 재생성 오류:`, error);
-			this.showStatus(`Cut ${cutNumber} 이미지 재생성 실패: ${error.message} (${duration}ms)`, 'error');
-			Utils.showAchievement('이미지 재생성에 실패했습니다. 다시 시도해주세요.', 'error');
-		})
-		.finally(() => {
-			this.isGenerating = false;
-			this.showLoading(false);
-		});
-	},
+       fetch(webhookUrl, {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json'
+           },
+           body: JSON.stringify(requestData)
+       })
+       .then(response => {
+           const duration = Date.now() - startTime;
+           return response.text().then(text => {
+               console.log('=== generateFromPrompt 응답 ===');
+               console.log(text);
+               console.log('===============================');
+               
+               if (response.ok) {
+                   let result = null;
+                   
+                   try {
+                       // JSON 파싱 시도
+                       result = JSON.parse(text);
+                       console.log('JSON 파싱 성공:', result);
+                   } catch (parseError) {
+                       console.log('JSON 파싱 실패, 텍스트 파싱 시도...');
+                       
+                       // 텍스트에서 성공 감지 및 데이터 추출
+                       if (text.includes('이미지 프롬프트') || text.includes('이미지 URL')) {
+                           result = this.parseTextResponse(text);
+                           console.log('텍스트 파싱 결과:', result);
+                       } else {
+                           throw new Error('응답을 파싱할 수 없습니다: ' + text.substring(0, 100));
+                       }
+                   }
+                   
+                   // 성공 처리
+                   this.handlePromptToImageSuccess(cutNumber, result, duration);
+               } else {
+                   throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+               }
+           });
+       })
+       .catch(error => {
+           const duration = Date.now() - startTime;
+           console.error(`Cut ${cutNumber} 이미지 재생성 오류:`, error);
+           this.showStatus(`Cut ${cutNumber} 이미지 재생성 실패: ${error.message} (${duration}ms)`, 'error');
+           Utils.showAchievement('이미지 재생성에 실패했습니다. 다시 시도해주세요.', 'error');
+       })
+       .finally(() => {
+           this.isGenerating = false;
+           this.showLoading(false);
+       });
+   },
 
    // 대본→이미지 생성 성공 처리 (캐러셀 적용)
    handleScriptToImageSuccess: function(cutNumber, result, duration) {
