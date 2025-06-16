@@ -853,100 +853,97 @@ window.ProductShortForm = {
        });
    },
 
-   // 프롬프트에서 이미지만 재생성 (텍스트 응답 처리 적용)
-   generateFromPrompt: function(cutNumber) {
-       if (this.isGenerating) {
-           Utils.showAchievement('이미지 생성이 진행 중입니다.', 'error');
-           return;
-       }
+	// 프롬프트에서 이미지만 재생성 (간단한 프롬프트만 전송)
+	generateFromPrompt: function(cutNumber) {
+		if (this.isGenerating) {
+			Utils.showAchievement('이미지 생성이 진행 중입니다.', 'error');
+			return;
+		}
 
-       const promptElement = document.getElementById(`cut${cutNumber}Prompt`);
-       if (!promptElement || !promptElement.value.trim()) {
-           Utils.showAchievement(`Cut ${cutNumber}의 프롬프트를 입력해주세요.`, 'error');
-           return;
-       }
+		const promptElement = document.getElementById(`cut${cutNumber}Prompt`);
+		if (!promptElement || !promptElement.value.trim()) {
+			Utils.showAchievement(`Cut ${cutNumber}의 프롬프트를 입력해주세요.`, 'error');
+			return;
+		}
 
-       const webhookUrl = this.webhookUrls.imageGeneration;
-       if (!webhookUrl) {
-           Utils.showAchievement('웹훅 2 (이미지 생성) URL을 설정해주세요.', 'error');
-           this.openWebhookModal();
-           return;
-       }
+		const webhookUrl = this.webhookUrls.imageGeneration;
+		if (!webhookUrl) {
+			Utils.showAchievement('웹훅 2 (이미지 생성) URL을 설정해주세요.', 'error');
+			this.openWebhookModal();
+			return;
+		}
 
-       this.isGenerating = true;
-       this.showLoading(true);
-       this.showStatus(`Cut ${cutNumber} 이미지를 재생성하고 있습니다...`, 'info');
+		this.isGenerating = true;
+		this.showLoading(true);
+		this.showStatus(`Cut ${cutNumber} 이미지를 재생성하고 있습니다...`, 'info');
 
-       // 새로운 데이터 구조 적용: Cut별 개별 필드 + Current Cut + prompt_to_image 플래그
-       const cutData = this.buildCutDataForWebhook();
-       cutData["Current Cut"] = cutNumber;
-       cutData["prompt_to_image"] = true;
-       cutData["image_prompt"] = promptElement.value.trim();
+		// 간단하게 프롬프트만 전송
+		const requestData = {
+			content: JSON.stringify({
+				"prompt": promptElement.value.trim()
+			}),
+			author: {
+				id: "123456789",
+				username: "prompt_to_image_generator",
+				discriminator: "0001"
+			},
+			timestamp: new Date().toISOString(),
+			attachments: []
+		};
 
-       const requestData = {
-           content: JSON.stringify(cutData),
-           author: {
-               id: "123456789",
-               username: "prompt_to_image_generator",
-               discriminator: "0001"
-           },
-           timestamp: new Date().toISOString(),
-           attachments: []
-       };
+		const startTime = Date.now();
 
-       const startTime = Date.now();
-
-       fetch(webhookUrl, {
-           method: 'POST',
-           headers: {
-               'Content-Type': 'application/json'
-           },
-           body: JSON.stringify(requestData)
-       })
-       .then(response => {
-           const duration = Date.now() - startTime;
-           return response.text().then(text => {
-               console.log('=== generateFromPrompt 응답 ===');
-               console.log(text);
-               console.log('===============================');
-               
-               if (response.ok) {
-                   let result = null;
-                   
-                   try {
-                       // JSON 파싱 시도
-                       result = JSON.parse(text);
-                       console.log('JSON 파싱 성공:', result);
-                   } catch (parseError) {
-                       console.log('JSON 파싱 실패, 텍스트 파싱 시도...');
-                       
-                       // 텍스트에서 성공 감지 및 데이터 추출
-                       if (text.includes('이미지 프롬프트') || text.includes('이미지 URL')) {
-                           result = this.parseTextResponse(text);
-                           console.log('텍스트 파싱 결과:', result);
-                       } else {
-                           throw new Error('응답을 파싱할 수 없습니다: ' + text.substring(0, 100));
-                       }
-                   }
-                   
-                   // 성공 처리
-                   this.handlePromptToImageSuccess(cutNumber, result, duration);
-               } else {
-                   throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-               }
-           });
-       })
-       .catch(error => {
-           const duration = Date.now() - startTime;
-           console.error(`Cut ${cutNumber} 이미지 재생성 오류:`, error);
-           this.showStatus(`Cut ${cutNumber} 이미지 재생성 실패: ${error.message} (${duration}ms)`, 'error');
-           Utils.showAchievement('이미지 재생성에 실패했습니다. 다시 시도해주세요.', 'error');
-       })
-       .finally(() => {
-           this.isGenerating = false;
-           this.showLoading(false);
-       });
-   },
+		fetch(webhookUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(requestData)
+		})
+		.then(response => {
+			const duration = Date.now() - startTime;
+			return response.text().then(text => {
+				console.log('=== generateFromPrompt 응답 ===');
+				console.log(text);
+				console.log('===============================');
+				
+				if (response.ok) {
+					let result = null;
+					
+					try {
+						// JSON 파싱 시도
+						result = JSON.parse(text);
+						console.log('JSON 파싱 성공:', result);
+					} catch (parseError) {
+						console.log('JSON 파싱 실패, 텍스트 파싱 시도...');
+						
+						// 텍스트에서 성공 감지 및 데이터 추출
+						if (text.includes('이미지 프롬프트') || text.includes('이미지 URL')) {
+							result = this.parseTextResponse(text);
+							console.log('텍스트 파싱 결과:', result);
+						} else {
+							throw new Error('응답을 파싱할 수 없습니다: ' + text.substring(0, 100));
+						}
+					}
+					
+					// 성공 처리
+					this.handlePromptToImageSuccess(cutNumber, result, duration);
+				} else {
+					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+				}
+			});
+		})
+		.catch(error => {
+			const duration = Date.now() - startTime;
+			console.error(`Cut ${cutNumber} 이미지 재생성 오류:`, error);
+			this.showStatus(`Cut ${cutNumber} 이미지 재생성 실패: ${error.message} (${duration}ms)`, 'error');
+			Utils.showAchievement('이미지 재생성에 실패했습니다. 다시 시도해주세요.', 'error');
+		})
+		.finally(() => {
+			this.isGenerating = false;
+			this.showLoading(false);
+		});
+	},
 
    // 대본→이미지 생성 성공 처리 (캐러셀 적용)
    handleScriptToImageSuccess: function(cutNumber, result, duration) {
