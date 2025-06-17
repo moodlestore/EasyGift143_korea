@@ -25,91 +25,111 @@ window.EngagementAssistant = {
                         <h2 style="margin: 0;">🎯 오늘의 목표</h2>
                     </div>
                     
-                    <div style="display: flex; gap: 20px; align-items: stretch; min-height: 80px;">
-                        <div style="flex: 6; background: white; padding: 20px; border-radius: 8px; border: 2px solid #667eea; display: flex; flex-direction: column; position: relative;">
-                            <div style="position: absolute; top: 10px; left: 20px;">
-                                <div style="color: #666; font-size: 20px; font-weight: bold;">2024.06.03</div>
+                    <div style="display: flex; gap: 20px; align-items: stretch; min-height: 400px;">
+                        <!-- 선택된 계정 현황 (60%) -->
+                        <div style="flex: 6; background: white; padding: 25px; border-radius: 12px; border: 2px solid #667eea; position: relative; display: flex; flex-direction: column;">
+                            <!-- 상단 정보 -->
+                            <div style="position: absolute; top: 15px; left: 25px;">
+                                <div style="color: #666; font-size: 18px; font-weight: bold;">2024.06.03</div>
                             </div>
                             
-                            <div style="position: absolute; top: 10px; right: 20px; font-size: 1.1em; color: #667eea;">
-                                <strong>총 진행률:</strong> <span id="overallProgress" style="font-size: 1.2em; color: #333;">0%</span>
+                            <div style="position: absolute; top: 15px; right: 25px; font-size: 16px; color: #667eea;">
+                                <strong>총 진행률:</strong> <span id="overallProgress" style="font-size: 18px; color: #333; font-weight: bold;">0%</span>
                             </div>
                             
-                            <div style="text-align: center; margin-top: 55px; margin-bottom: 20px;">
-                                <h3 style="margin: 0; font-size: 1.6em; color: #333;"><span id="selectedAccountName">계정을 선택하세요</span></h3>
+                            <!-- 중앙 계정명 -->
+                            <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
+                                <h3 style="margin: 0; font-size: 24px; color: #333; font-weight: bold;"><span id="selectedAccountName">계정을 선택하세요</span></h3>
                             </div>
                             
-                            <div style="position: absolute; top: 60%; left: 40px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 35px;">
-                                <div style="display: flex; align-items: center; justify-content: flex-start; min-width: 300px;">
-                                    <div style="font-size: 1.3em; color: #666; font-weight: bold; width: 80px;">포스팅</div>
-                                    <div class="goal-controls" style="display: flex; align-items: center; gap: 8px;">
-                                        <button onclick="EngagementAssistant.updateCurrentGoal('postings', -1)" style="width: 30px; height: 30px; font-size: 14px; border-radius: 50%; background: #667eea; color: white; border: none;">-</button>
-                                        <span style="display: flex; align-items: center;">
-                                            <span id="current-postings" style="font-size: 1.5em; font-weight: bold;">0</span>
-                                            <span style="color: #666; font-size: 1.2em; margin: 0 -6px;"> / </span>
-                                            <span id="current-postings-target" style="font-size: 1.5em;">0</span>
-                                        </span>
-                                        <button onclick="EngagementAssistant.updateCurrentGoal('postings', 1)" style="width: 30px; height: 30px; font-size: 14px; border-radius: 50%; background: #667eea; color: white; border: none;">+</button>
+                            <!-- 목표 영역 (왼쪽) -->
+                            <div style="position: absolute; left: 40px; top: 65%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 25px;">
+                                <!-- 포스팅 -->
+                                <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
+                                    <div style="font-size: 18px; color: #666; font-weight: bold; width: 80px; text-align: left;">포스팅</div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <button onclick="EngagementAssistant.updateCurrentGoal('postings', -1)" 
+                                                style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 16px; border-radius: 50%; background: #667eea; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; box-sizing: border-box; margin-top: 3px;">-</button>
+                                        <div style="display: flex; align-items: center; min-width: 100px; justify-content: center;">
+                                            <span id="current-postings" style="font-size: 24px; font-weight: bold; color: #333;">0</span>
+                                            <span style="color: #999; font-size: 20px; margin: 0 10px;"> / </span>
+                                            <span id="current-postings-target" style="font-size: 22px; color: #666;">0</span>
+                                        </div>
+                                        <button onclick="EngagementAssistant.updateCurrentGoal('postings', 1)" 
+                                                style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 16px; border-radius: 50%; background: #667eea; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; box-sizing: border-box; margin-top: 3px;">+</button>
                                     </div>
                                 </div>
                                 
-                                <div style="display: flex; align-items: center; justify-content: flex-start; min-width: 300px;">
-                                    <div style="font-size: 1.3em; color: #666; font-weight: bold; width: 80px;">좋아요</div>
-                                    <div class="goal-controls" style="display: flex; align-items: center; gap: 8px;">
-                                        <button onclick="EngagementAssistant.updateCurrentGoal('likes', -1)" style="width: 30px; height: 30px; font-size: 14px; border-radius: 50%; background: #667eea; color: white; border: none;">-</button>
-                                        <span style="display: flex; align-items: center;">
-                                            <span id="current-likes" style="font-size: 1.5em; font-weight: bold;">0</span>
-                                            <span style="color: #666; font-size: 1.2em; margin: 0 -6px;"> / </span>
-                                            <span id="current-likes-target" style="font-size: 1.5em;">0</span>
-                                        </span>
-                                        <button onclick="EngagementAssistant.updateCurrentGoal('likes', 1)" style="width: 30px; height: 30px; font-size: 14px; border-radius: 50%; background: #667eea; color: white; border: none;">+</button>
+                                <!-- 좋아요 -->
+                                <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
+                                    <div style="font-size: 18px; color: #666; font-weight: bold; width: 80px; text-align: left;">좋아요</div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <button onclick="EngagementAssistant.updateCurrentGoal('likes', -1)" 
+                                                style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 16px; border-radius: 50%; background: #667eea; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; box-sizing: border-box; margin-top: 3px;">-</button>
+                                        <div style="display: flex; align-items: center; min-width: 100px; justify-content: center;">
+                                            <span id="current-likes" style="font-size: 24px; font-weight: bold; color: #333;">0</span>
+                                            <span style="color: #999; font-size: 20px; margin: 0 10px;"> / </span>
+                                            <span id="current-likes-target" style="font-size: 22px; color: #666;">0</span>
+                                        </div>
+                                        <button onclick="EngagementAssistant.updateCurrentGoal('likes', 1)" 
+                                                style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 16px; border-radius: 50%; background: #667eea; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; box-sizing: border-box; margin-top: 3px;">+</button>
                                     </div>
                                 </div>
                                 
-                                <div style="display: flex; align-items: center; justify-content: flex-start; min-width: 300px;">
-                                    <div style="font-size: 1.3em; color: #666; font-weight: bold; width: 80px;">댓글</div>
-                                    <div class="goal-controls" style="display: flex; align-items: center; gap: 8px;">
-                                        <button onclick="EngagementAssistant.updateCurrentGoal('comments', -1)" style="width: 30px; height: 30px; font-size: 14px; border-radius: 50%; background: #667eea; color: white; border: none;">-</button>
-                                        <span style="display: flex; align-items: center;">
-                                            <span id="current-comments" style="font-size: 1.5em; font-weight: bold;">0</span>
-                                            <span style="color: #666; font-size: 1.2em; margin: 0 -6px;"> / </span>
-                                            <span id="current-comments-target" style="font-size: 1.5em;">0</span>
-                                        </span>
-                                        <button onclick="EngagementAssistant.updateCurrentGoal('comments', 1)" style="width: 30px; height: 30px; font-size: 14px; border-radius: 50%; background: #667eea; color: white; border: none;">+</button>
+                                <!-- 댓글 -->
+                                <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
+                                    <div style="font-size: 18px; color: #666; font-weight: bold; width: 80px; text-align: left;">댓글</div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <button onclick="EngagementAssistant.updateCurrentGoal('comments', -1)" 
+                                                style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 16px; border-radius: 50%; background: #667eea; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; box-sizing: border-box; margin-top: 3px;">-</button>
+                                        <div style="display: flex; align-items: center; min-width: 100px; justify-content: center;">
+                                            <span id="current-comments" style="font-size: 24px; font-weight: bold; color: #333;">0</span>
+                                            <span style="color: #999; font-size: 20px; margin: 0 10px;"> / </span>
+                                            <span id="current-comments-target" style="font-size: 22px; color: #666;">0</span>
+                                        </div>
+                                        <button onclick="EngagementAssistant.updateCurrentGoal('comments', 1)" 
+                                                style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 16px; border-radius: 50%; background: #667eea; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; box-sizing: border-box; margin-top: 3px;">+</button>
                                     </div>
                                 </div>
                                 
-                                <div style="display: flex; align-items: center; justify-content: flex-start; min-width: 300px;">
-                                    <div style="font-size: 1.3em; color: #666; font-weight: bold; width: 80px;">팔로우</div>
-                                    <div class="goal-controls" style="display: flex; align-items: center; gap: 8px;">
-                                        <button onclick="EngagementAssistant.updateCurrentGoal('follows', -1)" style="width: 30px; height: 30px; font-size: 14px; border-radius: 50%; background: #667eea; color: white; border: none;">-</button>
-                                        <span style="display: flex; align-items: center;">
-                                            <span id="current-follows" style="font-size: 1.5em; font-weight: bold;">0</span>
-                                            <span style="color: #666; font-size: 1.2em; margin: 0 -6px;"> / </span>
-                                            <span id="current-follows-target" style="font-size: 1.5em;">0</span>
-                                        </span>
-                                        <button onclick="EngagementAssistant.updateCurrentGoal('follows', 1)" style="width: 30px; height: 30px; font-size: 14px; border-radius: 50%; background: #667eea; color: white; border: none;">+</button>
+                                <!-- 팔로우 -->
+                                <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
+                                    <div style="font-size: 18px; color: #666; font-weight: bold; width: 80px; text-align: left;">팔로우</div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <button onclick="EngagementAssistant.updateCurrentGoal('follows', -1)" 
+                                                style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 16px; border-radius: 50%; background: #667eea; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; box-sizing: border-box; margin-top: 3px;">-</button>
+                                        <div style="display: flex; align-items: center; min-width: 100px; justify-content: center;">
+                                            <span id="current-follows" style="font-size: 24px; font-weight: bold; color: #333;">0</span>
+                                            <span style="color: #999; font-size: 20px; margin: 0 10px;"> / </span>
+                                            <span id="current-follows-target" style="font-size: 22px; color: #666;">0</span>
+                                        </div>
+                                        <button onclick="EngagementAssistant.updateCurrentGoal('follows', 1)" 
+                                                style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 16px; border-radius: 50%; background: #667eea; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; box-sizing: border-box; margin-top: 3px;">+</button>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div style="position: absolute; right: 25px; top: 60%; transform: translateY(-50%); display: flex; align-items: center; gap: 35px;">
-                                <div style="width: 30px; height: 230px; background: #e9ecef; border-radius: 15px; position: relative; border: 2px solid #dee2e6;">
-                                    <div id="verticalProgress" style="position: absolute; bottom: 0; width: 100%; background: #28a745; border-radius: 13px; transition: height 0.3s ease; height: 0%;"></div>
+                            <!-- 진행률 바와 캐릭터 (오른쪽) -->
+                            <div style="position: absolute; right: 35px; top: 62%; transform: translateY(-50%); display: flex; align-items: center; gap: 20px;">
+                                <!-- 세로 진행률 바 -->
+                                <div style="width: 28px; height: 250px; background: #e9ecef; border-radius: 14px; position: relative; border: 2px solid #dee2e6; flex-shrink: 0;">
+                                    <div id="verticalProgress" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(0deg, #28a745, #20c997); border-radius: 12px; transition: height 0.5s ease; height: 0%;"></div>
                                 </div>
-                                <div id="progressCharacter" style="font-size: 4em;">😴</div>
+                                <!-- 진행률 캐릭터 -->
+                                <div id="progressCharacter" style="font-size: 64px; line-height: 1; flex-shrink: 0;">😴</div>
                             </div>
                         </div>
                         
-                        <div style="flex: 4; background: white; padding: 20px; border-radius: 8px; border: 2px solid #28a745; display: flex; flex-direction: column; min-height: 60px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-								<h3 style="margin: 0; font-size: 1.3em;">계정 관리</h3>
-								<button onclick="EngagementAssistant.openAccountEditor()" style="width: 30px; height: 30px; padding: 0; font-size: 20px; background: white; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center;" title="계정 편집">⚙️</button>
-							</div>
+                        <!-- 계정 관리 (40%) -->
+                        <div style="flex: 4; background: white; padding: 20px; border-radius: 12px; border: 2px solid #28a745; display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0; font-size: 18px;">계정 관리</h3>
+                                <button onclick="EngagementAssistant.openAccountEditor()" style="width: 32px; height: 32px; padding: 0; font-size: 16px; background: white; border: 1px solid #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="계정 편집">⚙️</button>
+                            </div>
                             
-                            <div class="form-group" style="margin-bottom: 8px;">
-                                <label for="snsSelect" style="font-size: 14px; margin-bottom: 5px;">SNS 플랫폼</label>
-                                <select id="snsSelect" style="padding: 10px; font-size: 14px;">
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label for="snsSelect" style="font-size: 14px; margin-bottom: 6px; font-weight: 600;">SNS 플랫폼</label>
+                                <select id="snsSelect" style="padding: 10px; font-size: 14px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
                                     <option value="instagram">Instagram</option>
                                     <option value="x">X (Twitter)</option>
                                     <option value="threads">Threads</option>
@@ -117,8 +137,8 @@ window.EngagementAssistant = {
                             </div>
                             
                             <div class="form-group" style="margin-bottom: 15px;">
-                                <label for="languageSelect" style="font-size: 14px; margin-bottom: 5px;">국가</label>
-                                <select id="languageSelect" style="padding: 10px; font-size: 14px;">
+                                <label for="languageSelect" style="font-size: 14px; margin-bottom: 6px; font-weight: 600;">국가</label>
+                                <select id="languageSelect" style="padding: 10px; font-size: 14px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
                                     <option value="korea">한국</option>
                                     <option value="japan">일본</option>
                                     <option value="usa">미국</option>
@@ -127,14 +147,14 @@ window.EngagementAssistant = {
                             </div>
                             
                             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <button onclick="EngagementAssistant.addAccount()" style="flex: 1; background: #28a745; font-size: 14px; padding: 10px;">➕ 추가</button>
-                                <button onclick="EngagementAssistant.removeAccount()" style="flex: 1; background: #dc3545; font-size: 14px; padding: 10px;">➖ 제거</button>
+                                <button onclick="EngagementAssistant.addAccount()" style="flex: 1; background: #28a745; font-size: 14px; padding: 10px; margin: 0; border-radius: 6px;">➕ 추가</button>
+                                <button onclick="EngagementAssistant.removeAccount()" style="flex: 1; background: #dc3545; font-size: 14px; padding: 10px; margin: 0; border-radius: 6px;">➖ 제거</button>
                             </div>
                             
                             <div style="margin-bottom: 10px;">
-								<label style="font-size: 14px; margin-bottom: 5px;">활성 계정 목록</label>
-							</div>
-                            <select id="accountList" size="5" style="width: 100%; font-size: 14px; padding: 5px; flex: 1; font-family: 'Courier New', Consolas, monospace;" onchange="EngagementAssistant.selectAccount()">
+                                <label style="font-size: 14px; margin-bottom: 6px; font-weight: 600;">활성 계정 목록</label>
+                            </div>
+                            <select id="accountList" size="5" style="width: 100%; font-size: 13px; padding: 8px; flex: 1; font-family: 'Courier New', Consolas, monospace; border: 1px solid #ddd; border-radius: 6px; background: white;" onchange="EngagementAssistant.selectAccount()">
                             </select>
                         </div>
                     </div>
