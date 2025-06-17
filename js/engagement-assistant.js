@@ -43,7 +43,7 @@ window.EngagementAssistant = {
                             </div>
                             
                             <!-- 목표 영역 (왼쪽) -->
-                            <div style="position: absolute; left: 40px; top: 65%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 25px;">
+                            <div style="position: absolute; left: 40px; top: 65%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 22px;">
                                 <!-- 포스팅 -->
                                 <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
                                     <div style="font-size: 18px; color: #666; font-weight: bold; width: 80px; text-align: left;">포스팅</div>
@@ -110,7 +110,7 @@ window.EngagementAssistant = {
                             </div>
                             
                             <!-- 진행률 바와 캐릭터 (오른쪽) -->
-                            <div style="position: absolute; right: 35px; top: 62%; transform: translateY(-50%); display: flex; align-items: center; gap: 20px;">
+                            <div style="position: absolute; right: 35px; top: 65%; transform: translateY(-50%); display: flex; align-items: center; gap: 20px;">
                                 <!-- 세로 진행률 바 -->
                                 <div style="width: 28px; height: 250px; background: #e9ecef; border-radius: 14px; position: relative; border: 2px solid #dee2e6; flex-shrink: 0;">
                                     <div id="verticalProgress" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(0deg, #28a745, #20c997); border-radius: 12px; transition: height 0.5s ease; height: 0%;"></div>
