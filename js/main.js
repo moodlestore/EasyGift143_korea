@@ -67,26 +67,19 @@ window.AppState = {
 				];
                 
                 // 기존 계정들의 목표값을 새로운 기본값으로 강제 업데이트
-                if (this.accountGoals) {
-                    Object.keys(this.accountGoals).forEach(accountKey => {
-                        const [sns] = accountKey.split('-');
-                        const newTargets = {
-                            instagram: { postings: 2, likes: 40, comments: 20, follows: 20 },
-                            x: { postings: 15, likes: 50, comments: 30, follows: 30 },
-                            threads: { postings: 2, likes: 40, comments: 20, follows: 20 }
-                        };
-                        
-                        // 기존 계정의 목표값을 새로운 값으로 덮어쓰기
-                        if (newTargets[sns]) {
-                            this.accountGoals[accountKey].targets = newTargets[sns];
-                        }
-                    });
-                }
-            }
-        } catch (e) {
-            console.log('상태 로드 오류:', e);
-        }
-    },
+                // 하드코딩 대신 EngagementAssistant.getDefaultTargets 함수 참조
+				if (this.accountGoals && typeof EngagementAssistant !== 'undefined') {
+					Object.keys(this.accountGoals).forEach(accountKey => {
+						const [sns, language] = accountKey.split('-');
+						const newTargets = EngagementAssistant.getDefaultTargets(sns, language);
+						this.accountGoals[accountKey].targets = newTargets;
+					});
+				}
+							}
+						} catch (e) {
+							console.log('상태 로드 오류:', e);
+						}
+					},
     
     // 이벤트 리스너 설정
     setupEventListeners: function() {
