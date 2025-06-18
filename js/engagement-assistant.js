@@ -421,9 +421,9 @@ window.EngagementAssistant = {
 
     getDefaultTargets: function(sns, language) {
         const baseTargets = {
-            instagram: { postings: 2, likes: 40, comments: 20, follows: 20 },
+            instagram: { postings: 3, likes: 40, comments: 20, follows: 20 },
             x: { postings: 15, likes: 50, comments: 30, follows: 30 },
-            threads: { postings: 2, likes: 40, comments: 20, follows: 20 }
+            threads: { postings: 3, likes: 40, comments: 20, follows: 20 }
         };
         
         return baseTargets[sns] || { postings: 2, likes: 3, comments: 1, follows: 1 };
