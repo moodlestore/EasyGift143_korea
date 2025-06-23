@@ -49,7 +49,7 @@
         <!-- 푸터 -->
         <footer class="dashboard-footer">
             <div class="version-info">
-                <strong>v3.0.8-test</strong> by IdeaForest24
+                <strong>v3.1.0-cardnews</strong> by IdeaForest24
             </div>
             <div class="status-info">
                 <span id="connectionStatus">🟢 연결됨</span>
@@ -112,11 +112,12 @@
         </div>
     </div>
 
-    <!-- 스크립트 로드 (모듈 분리된 구조) -->
+    <!-- 스크립트 로드 (카드뉴스 모듈 추가) -->
     <script src="js/main.js"></script>
     <script src="js/product-register.js"></script>         <!-- 메인 컨트롤러 -->
     <script src="js/product-posting.js"></script>          <!-- 포스팅 기능 (기존 메인) -->
-    <script src="js/product-shortform.js"></script>        <!-- 숏폼 콘텐츠 (신규) -->
+    <script src="js/product-cardnews.js"></script>         <!-- 카드뉴스 기능 (신규) -->
+    <script src="js/product-shortform.js"></script>        <!-- 숏폼 콘텐츠 -->
     <script src="js/product-giftstory.js"></script>        <!-- 감동 선물 사연 -->
     <script src="js/engagement-assistant.js"></script>     <!-- SNS 성장 도우미 -->
     <script src="js/analytics.js"></script>                <!-- 분석 대시보드 -->
@@ -129,6 +130,7 @@
             // 모듈 로드 확인
             console.log('ProductRegister 로드됨:', typeof ProductRegister !== 'undefined');
             console.log('ProductPosting 로드됨:', typeof ProductPosting !== 'undefined');
+            console.log('ProductCardNews 로드됨:', typeof ProductCardNews !== 'undefined');
             console.log('ProductShortForm 로드됨:', typeof ProductShortForm !== 'undefined');
             console.log('ProductGiftStory 로드됨:', typeof ProductGiftStory !== 'undefined');
             console.log('EngagementAssistant 로드됨:', typeof EngagementAssistant !== 'undefined');
