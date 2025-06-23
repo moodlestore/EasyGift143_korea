@@ -1,14 +1,17 @@
-// 제품 등록 메인 컨트롤러 (탭 스타일 복원)
+// 제품 등록 메인 컨트롤러 (카드뉴스 탭 추가)
 window.ProductRegister = {
     currentSubTab: 'posting', // 기본은 포스팅 탭
 
-    // HTML 반환 (탭 스타일로 복원)
+    // HTML 반환 (카드뉴스 탭 추가)
     getHTML: function() {
         return `
-            <!-- 서브탭 네비게이션 (기존 메인탭과 동일한 스타일) -->
+            <!-- 서브탭 네비게이션 (카드뉴스 탭 추가) -->
             <div class="main-nav sub-nav">
                 <button class="nav-tab active" data-tab="posting" onclick="ProductRegister.switchSubTab('posting')">
                     📝 포스팅
+                </button>
+                <button class="nav-tab" data-tab="cardnews" onclick="ProductRegister.switchSubTab('cardnews')">
+                    📰 카드뉴스
                 </button>
                 <button class="nav-tab" data-tab="shortform" onclick="ProductRegister.switchSubTab('shortform')">
                     🎬 숏폼 콘텐츠
@@ -21,6 +24,10 @@ window.ProductRegister = {
             <!-- 서브탭 컨텐츠 영역 -->
             <div id="posting-content" class="sub-tab-content active">
                 <!-- 포스팅 기능 내용이 여기에 동적으로 로드됩니다 -->
+            </div>
+
+            <div id="cardnews-content" class="sub-tab-content" style="display: none;">
+                <!-- 카드뉴스 기능 내용이 여기에 동적으로 로드됩니다 -->
             </div>
 
             <div id="shortform-content" class="sub-tab-content" style="display: none;">
@@ -84,6 +91,16 @@ window.ProductRegister = {
                     } else {
                         console.error('ProductPosting 모듈이 로드되지 않음');
                         contentDiv.innerHTML = '<div class="section"><h2>⚠️ 포스팅 모듈 로드 오류</h2><p>product-posting.js 파일을 확인해주세요.</p></div>';
+                    }
+                    break;
+
+                case 'cardnews':
+                    if (typeof ProductCardNews !== 'undefined') {
+                        contentDiv.innerHTML = ProductCardNews.getHTML();
+                        ProductCardNews.initialize();
+                    } else {
+                        console.error('ProductCardNews 모듈이 로드되지 않음');
+                        contentDiv.innerHTML = '<div class="section"><h2>⚠️ 카드뉴스 모듈 로드 오류</h2><p>product-cardnews.js 파일을 확인해주세요.</p></div>';
                     }
                     break;
 
