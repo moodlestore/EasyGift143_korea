@@ -49,14 +49,14 @@ window.ProductCardNews = {
                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                        <h3 style="margin: 0 0 15px 0; color: #667eea;">Step 1. Canva에서 카드뉴스 본문 넣기</h3>
                        <p style="margin: 0 0 15px 0; color: #666;">위에서 생성된 본문을 복사해서 Canva 템플릿에 붙여넣으세요.</p>
-                       <button onclick="ProductCardNews.copyContentToClipboard()" style="background: #00d4aa; margin-right: 10px;">📋 본문 복사</button>
-                       <button onclick="ProductCardNews.openCanva()" style="background: #8c52ff;">📝 Canva로 이동하기</button>
+                       <button onclick="ProductCardNews.copyContentToClipboard()" class="cardnews-button" style="background: #00d4aa; margin-right: 10px;">📋 본문 복사</button>
+						<button onclick="ProductCardNews.openCanva()" class="cardnews-button" style="background: #8c52ff; margin-right: 10px;">📝 Canva로 이동</button>
                    </div>
                    
                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
                        <h3 style="margin: 0 0 15px 0; color: #667eea;">Step 2. 포스팅 하기</h3>
                        <p style="margin: 0 0 15px 0; color: #666;">Canva에서 카드뉴스 작업이 완료되면 포스팅을 진행하세요.</p>
-                       <button id="postCardNewsBtn" onclick="ProductCardNews.postCardNews()" style="background: #28a745;">📤 포스팅</button>
+                       <button id="postCardNewsBtn" onclick="ProductCardNews.postCardNews()" class="cardnews-button" style="background: #28a745;">📤 포스팅</button>
                    </div>
                </div>
 
