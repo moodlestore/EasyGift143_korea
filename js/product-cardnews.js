@@ -13,17 +13,17 @@ window.ProductCardNews = {
    getHTML: function() {
        return `
            <div class="cardnews-container">
-               <!-- 카드뉴스 주제 입력 섹션 -->
-               <div class="section">
-                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                       <h2>📰 카드뉴스 주제 입력</h2>
-                       <button onclick="ProductCardNews.openWebhookModal()" style="background: #6c757d; margin-bottom: 0;">⚙️ 설정</button>
+               <!-- 카드뉴스 아이디어 입력 섹션 -->
+			   <div class="section">
+                   <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+                       <h2 style="margin: 0;">📰 카드뉴스 아이디어 입력</h2>
+                       <button onclick="ProductCardNews.openWebhookModal()" style="background: #6c757d; margin: 0;">⚙️ 설정</button>
                    </div>
                    
                    <div class="form-group">
-                       <label for="cardNewsTitle">카드뉴스 주제</label>
+                       <label for="cardNewsTitle">아이디어</label>
                        <div style="display: flex; gap: 15px; align-items: stretch;">
-                           <input type="text" id="cardNewsTitle" placeholder='예: "겨울철 건강 관리 5가지 팁"' style="flex: 1;">
+                           <input type="text" id="cardNewsTitle" placeholder='예: "연인에게 감동적인 선물 하는 방법"' style="flex: 1;">
                            <button id="generateContentBtn" onclick="ProductCardNews.generateContent()" style="flex: none; white-space: nowrap; margin: 0;">📝 생성</button>
                        </div>
                    </div>
@@ -34,7 +34,7 @@ window.ProductCardNews = {
                    <h2>📝 생성된 본문 (검수 및 수정)</h2>
                    
                    <div class="form-group">
-                       <textarea id="generatedContent" rows="15" placeholder="생성된 카드뉴스 본문이 여기에 표시됩니다...&#10;&#10;예시:&#10;[카드 1]&#10;겨울철 건강 관리의 중요성&#10;추운 날씨로 인해 면역력이 떨어지기 쉬운 겨울철...&#10;&#10;[카드 2]&#10;충분한 수분 섭취&#10;겨울철에도 하루 8잔 이상의 물을..."></textarea>
+                       <textarea id="generatedContent" rows="15" placeholder=""></textarea>
                    </div>
                    
                    <div style="text-align: center; margin-top: 15px;">
