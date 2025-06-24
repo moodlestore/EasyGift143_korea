@@ -551,3 +551,11 @@
     font-size: 14px;
     text-align: center;
 }
+
+/* components.css 파일 맨 아래에 추가 */
+.cardnews-button {
+    min-width: 210px !important;
+    width: 210px;
+    display: inline-block;
+    text-align: center;
+}
