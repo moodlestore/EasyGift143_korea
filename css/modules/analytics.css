@@ -1,0 +1,351 @@
+/* ==========================================================================
+   분석 대시보드 기능 전용 스타일 (Pro 모드)
+   analytics.js 모듈에 대응
+   ========================================================================== */
+
+/* 분석 컨테이너 */
+.analytics-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Pro 모드 기능 안내 */
+.pro-features-info {
+    background: #e8f5e8;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-lg);
+    border-left: 4px solid var(--success-color);
+}
+
+.pro-features-info h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--success-color);
+}
+
+.pro-features-info ul {
+    margin: 0;
+    padding-left: var(--spacing-lg);
+}
+
+.pro-features-info li {
+    margin-bottom: var(--spacing-xs);
+    color: #155724;
+}
+
+/* 주요 지표 카드 그리드 */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* 지표 카드 */
+.metric-card {
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    border: 2px solid transparent;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    transition: var(--transition-normal);
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.metric-card.success {
+    border-color: var(--success-color);
+}
+
+.metric-card.primary {
+    border-color: var(--primary-color);
+}
+
+.metric-card.warning {
+    border-color: var(--warning-color);
+}
+
+.metric-card h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.metric-value {
+    font-size: 2em;
+    font-weight: bold;
+    margin: var(--spacing-sm) 0;
+    line-height: 1.2;
+}
+
+.metric-value.success {
+    color: var(--success-color);
+}
+
+.metric-value.primary {
+    color: var(--primary-color);
+}
+
+.metric-value.warning {
+    color: var(--warning-color);
+}
+
+.metric-description {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.metric-secondary {
+    font-size: 12px;
+    color: #999;
+    margin-top: var(--spacing-xs);
+}
+
+/* 언어별 성과 분석 */
+.language-performance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.language-card {
+    background: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    border-left: 4px solid;
+    box-shadow: var(--shadow-sm);
+}
+
+.language-card.korean {
+    border-left-color: #ff6b6b;
+}
+
+.language-card.japanese {
+    border-left-color: #4ecdc4;
+}
+
+.language-card.english {
+    border-left-color: #45b7d1;
+}
+
+.language-card h4 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 1em;
+}
+
+.language-card p {
+    margin: var(--spacing-xs) 0;
+    font-size: 14px;
+}
+
+.language-card .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: var(--spacing-sm);
+}
+
+.language-card .progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.language-card.korean .progress-fill {
+    background: #ff6b6b;
+}
+
+.language-card.japanese .progress-fill {
+    background: #4ecdc4;
+}
+
+.language-card.english .progress-fill {
+    background: #45b7d1;
+}
+
+/* 최고 성과 포스팅 */
+.top-posts {
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.post-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid #eee;
+}
+
+.post-item:last-child {
+    border-bottom: none;
+}
+
+.post-info h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1em;
+}
+
+.post-info small {
+    color: #666;
+    font-size: 12px;
+}
+
+.post-metrics {
+    text-align: right;
+}
+
+.post-metrics p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.post-metrics .likes {
+    color: var(--primary-color);
+}
+
+.post-metrics .comments {
+    color: var(--success-color);
+}
+
+/* API 연동 상태 */
+.api-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.api-status-card {
+    background: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.api-status-card h4 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 1em;
+}
+
+.api-status-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin: var(--spacing-sm) auto;
+}
+
+.api-status-indicator.connected {
+    background: var(--success-color);
+}
+
+.api-status-indicator.limited {
+    background: var(--warning-color);
+}
+
+.api-status-indicator.disconnected {
+    background: var(--error-color);
+}
+
+.api-status-text {
+    margin: 0;
+    font-weight: 600;
+}
+
+.api-status-text.connected {
+    color: var(--success-color);
+}
+
+.api-status-text.limited {
+    color: var(--warning-color);
+}
+
+.api-status-text.disconnected {
+    color: var(--error-color);
+}
+
+.api-last-sync {
+    font-size: 12px;
+    color: #666;
+    margin-top: var(--spacing-xs);
+}
+
+/* 실시간 업데이트 섹션 */
+.analytics-actions {
+    text-align: center;
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: #f8f9fa;
+    border-radius: var(--border-radius-md);
+}
+
+.analytics-actions button {
+    margin: 0 var(--spacing-sm);
+}
+
+.analytics-actions .refresh-btn {
+    background: var(--info-color);
+}
+
+.analytics-actions .export-btn {
+    background: #6f42c1;
+}
+
+.analytics-actions .refresh-btn:hover:not(:disabled) {
+    background: #138496;
+}
+
+.analytics-actions .export-btn:hover:not(:disabled) {
+    background: #5a2d91;
+}
+
+.analytics-last-update {
+    color: #666;
+    margin-top: var(--spacing-sm);
+    font-size: 14px;
+}
+
+/* 반응형 (분석 대시보드 전용) */
+@media (max-width: 768px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .language-performance {
+        grid-template-columns: 1fr;
+    }
+    
+    .api-status-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .post-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+    
+    .post-metrics {
+        text-align: left;
+    }
+    
+    .analytics-actions {
+        padding: var(--spacing-md);
+    }
+    
+    .analytics-actions button {
+        display: block;
+        width: 100%;
+        margin: 0 0 var(--spacing-sm) 0;
+    }
+}
