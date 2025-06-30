@@ -1,0 +1,434 @@
+/* ==========================================================================
+   SNS 성장 도우미 기능 전용 스타일
+   engagement-assistant.js 모듈에 대응
+   ========================================================================== */
+
+/* SNS 성장 도우미 컨테이너 */
+.engagement-assistant-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Pro 모드 기능 안내 */
+.pro-features-info {
+    background: #e8f5e8;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-lg);
+    border-left: 4px solid var(--success-color);
+}
+
+.pro-features-info h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--success-color);
+}
+
+.pro-features-info ul {
+    margin: 0;
+    padding-left: var(--spacing-lg);
+}
+
+.pro-features-info li {
+    margin-bottom: var(--spacing-xs);
+    color: #155724;
+}
+
+/* 목표 관리 섹션 */
+.goal-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.goal-controls button {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.goal-controls button:hover:not(:disabled) {
+    background: var(--secondary-color);
+    transform: scale(1.1);
+}
+
+.goal-controls button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 진행률 표시 */
+#progressCharacter {
+    font-size: 4em;
+    transition: var(--transition-normal);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#verticalProgress {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: var(--success-color);
+    border-radius: 13px;
+    transition: height 0.3s ease;
+    height: 0%;
+}
+
+/* 계정 관리 */
+#accountList {
+    width: 100%;
+    font-size: 14px;
+    padding: 5px;
+    flex: 1;
+    font-family: 'Courier New', Consolas, monospace;
+    border: var(--border-medium);
+    border-radius: var(--border-radius-md);
+    background: white;
+}
+
+#accountList:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+#accountList option {
+    padding: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+#accountList option:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+#accountList option:selected {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* 번역 도우미 */
+#translationWebhook {
+    width: 100%;
+    padding: 12px;
+    border: var(--border-medium);
+    border-radius: var(--border-radius-md);
+    font-size: 14px;
+}
+
+#translationWebhook:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+#originalText, #translationResult {
+    width: 100%;
+    padding: 12px;
+    border: var(--border-medium);
+    border-radius: var(--border-radius-md);
+    font-size: 14px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+#originalText:focus, #translationResult:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+#translationResult {
+    background: #f8f9fa;
+    color: #333;
+}
+
+/* 번역 웹훅 저장 표시기 */
+#translationWebhookSaved {
+    color: var(--success-color);
+    font-weight: 600;
+    margin-left: var(--spacing-sm);
+    font-size: 14px;
+    display: none;
+}
+
+/* 계정 편집 모달 */
+#accountEditorModal .modal-content {
+    max-width: 450px;
+}
+
+#newCountryInput {
+    width: 100%;
+    padding: 8px;
+    border: var(--border-medium);
+    border-radius: var(--border-radius-md);
+    font-size: 14px;
+}
+
+#newCountryInput:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+#countryList {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
+    background: white;
+}
+
+.country-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 5px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid #ddd;
+}
+
+.country-item strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.country-item .account-count {
+    color: #666;
+    font-size: 12px;
+    margin-left: var(--spacing-sm);
+}
+
+.country-item button {
+    background: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    margin: 0;
+}
+
+.country-item button:hover:not(:disabled) {
+    background: #c82333;
+}
+
+/* 목표 표시 영역 */
+.goal-display {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 300px;
+    margin-bottom: 35px;
+}
+
+.goal-label {
+    font-size: 1.3em;
+    color: #666;
+    font-weight: bold;
+    width: 80px;
+}
+
+.goal-values {
+    display: flex;
+    align-items: center;
+}
+
+.current-value {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+}
+
+.value-separator {
+    color: #666;
+    font-size: 1.2em;
+    margin: 0 -6px;
+}
+
+.target-value {
+    font-size: 1.5em;
+    color: #666;
+}
+
+/* 전체 진행률 표시 */
+#overallProgress {
+    font-size: 1.2em;
+    color: #333;
+    font-weight: bold;
+}
+
+/* 선택된 계정명 표시 */
+#selectedAccountName {
+    margin: 0;
+    font-size: 1.6em;
+    color: #333;
+    text-align: center;
+}
+
+/* 진행률 바 컨테이너 */
+.progress-bar-container {
+    width: 30px;
+    height: 230px;
+    background: #e9ecef;
+    border-radius: 15px;
+    position: relative;
+    border: 2px solid #dee2e6;
+    overflow: hidden;
+}
+
+/* 계정 관리 편집 버튼 */
+.account-edit-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    font-size: 20px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    margin: 0;
+}
+
+.account-edit-btn:hover {
+    background: #f8f9fa;
+    transform: scale(1.1);
+}
+
+/* 반응형 디자인 (SNS 성장 도우미 전용) */
+@media (max-width: 768px) {
+    .goal-display {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+        min-width: auto;
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .goal-label {
+        width: auto;
+        text-align: center;
+        font-size: 1.1em;
+    }
+    
+    .goal-controls {
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+    
+    .goal-controls button {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    #progressCharacter {
+        font-size: 3em;
+    }
+    
+    .progress-bar-container {
+        width: 100%;
+        height: 20px;
+        margin: var(--spacing-md) 0;
+    }
+    
+    #verticalProgress {
+        width: 0%;
+        height: 100%;
+        left: 0;
+        bottom: auto;
+    }
+    
+    #accountList {
+        font-family: inherit;
+        font-size: 16px;
+    }
+    
+    .country-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+    
+    .country-item button {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    .pro-features-info {
+        padding: var(--spacing-sm);
+    }
+    
+    .pro-features-info ul {
+        padding-left: var(--spacing-md);
+    }
+}
+
+/* 다크 모드 지원 (향후 확장용) */
+@media (prefers-color-scheme: dark) {
+    #accountList {
+        background: #2c2c2c;
+        color: white;
+        border-color: #444;
+    }
+    
+    #accountList option:hover {
+        background: rgba(102, 126, 234, 0.3);
+    }
+    
+    #translationResult {
+        background: #2c2c2c;
+        color: #e0e0e0;
+    }
+    
+    .country-item {
+        background: #333;
+        border-color: #444;
+        color: white;
+    }
+}
+
+/* 애니메이션 효과 */
+@keyframes progressFill {
+    from {
+        height: 0%;
+    }
+    to {
+        height: var(--target-height);
+    }
+}
+
+.progress-animated #verticalProgress {
+    animation: progressFill 1s ease-out;
+}
+
+/* 성취 효과 */
+.achievement-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 5px var(--success-color);
+    }
+    to {
+        box-shadow: 0 0 20px var(--success-color), 0 0 30px var(--success-color);
+    }
+}

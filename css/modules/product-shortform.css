@@ -1,0 +1,589 @@
+/* ==========================================================================
+   숏폼 콘텐츠 기능 전용 스타일
+   product-shortform.js 모듈에 대응
+   ========================================================================== */
+
+/* 숏폼 컨테이너 */
+.shortform-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.shortform-container .section {
+    margin-bottom: 25px;
+}
+
+/* Cut별 컨테이너 */
+.cut-container {
+    background: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    border: var(--border-medium);
+    transition: var(--transition-normal);
+}
+
+.cut-container:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.cut-container h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--primary-color);
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* Cut별 대본 입력 */
+.cut-container textarea {
+    width: 100%;
+    font-size: 13px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius-sm);
+    padding: 8px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.cut-container textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* 이미지 프리뷰 */
+.cut-image-preview {
+    margin-top: var(--spacing-xs);
+    text-align: center;
+    min-height: 120px;
+    border: 2px dashed #ddd;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9f9f9;
+    transition: var(--transition-normal);
+}
+
+.cut-image-preview:hover {
+    border-color: var(--primary-color);
+    background: #f0f0ff;
+}
+
+.cut-image-preview img {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm);
+}
+
+.cut-image-preview span {
+    color: #666;
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* 프롬프트 입력 */
+.cut-prompt-input {
+    width: 100%;
+    font-size: 12px;
+    font-family: 'Courier New', Consolas, monospace;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius-sm);
+    padding: 8px;
+    background: #fafafa;
+    resize: vertical;
+}
+
+.cut-prompt-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+}
+
+/* 개별 재생성 버튼 */
+.cut-regenerate-btn {
+    background: var(--info-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    margin: 0;
+}
+
+.cut-regenerate-btn:hover:not(:disabled) {
+    background: #138496;
+    transform: translateY(-1px);
+}
+
+.cut-regenerate-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Cut 4 (제품 이미지) 전용 스타일 */
+.product-image-upload {
+    background: var(--success-color);
+    color: white;
+    font-size: 13px;
+    padding: 8px 12px;
+    margin: 0;
+}
+
+.product-image-upload:hover:not(:disabled) {
+    background: #218838;
+}
+
+/* 그리드 레이아웃 */
+.cuts-grid {
+    display: grid;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.cuts-grid.two-columns {
+    grid-template-columns: 1fr 1fr;
+}
+
+.cuts-grid.one-column {
+    grid-template-columns: 1fr;
+}
+
+/* 대본 섹션 */
+.script-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.script-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.script-actions button {
+    flex: none;
+    min-width: 140px;
+}
+
+#generatedScript {
+    width: 100%;
+    min-height: 200px;
+    padding: var(--spacing-md);
+    border: var(--border-medium);
+    border-radius: var(--border-radius-md);
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    font-family: inherit;
+}
+
+#generatedScript:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* 제품코드 입력 */
+.product-code-input {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: end;
+}
+
+.product-code-input > div {
+    flex: 1;
+}
+
+.product-code-input label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+    color: #333;
+}
+
+.product-code-input input {
+    width: 100%;
+    padding: 12px;
+    border: var(--border-medium);
+    border-radius: var(--border-radius-md);
+    font-size: 14px;
+}
+
+.product-code-input input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.product-code-input button {
+    flex: none;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* 이미지 캐러셀 (숏폼 전용) */
+.image-carousel {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    border: 2px dashed #ddd;
+    border-radius: var(--border-radius-sm);
+    background: #f9f9f9;
+    min-height: 250px;
+    overflow: hidden;
+}
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+}
+
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: var(--transition-normal);
+}
+
+.carousel-nav:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-nav.prev {
+    left: 8px;
+}
+
+.carousel-nav.next {
+    right: 8px;
+}
+
+.carousel-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: translateY(-50%);
+}
+
+.carousel-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px var(--spacing-sm);
+    border-radius: 12px;
+    font-size: 12px;
+    z-index: 2;
+    font-weight: 600;
+}
+
+.carousel-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 250px;
+    color: #666;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* 상태 메시지 (숏폼 전용) */
+#shortformStatus {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    text-align: center;
+    margin-top: var(--spacing-lg);
+}
+
+#shortformStatus.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+#shortformStatus.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+#shortformStatus.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* 웹훅 모달 (숏폼 전용) */
+#shortformWebhookModal .modal-content {
+    max-width: 650px;
+}
+
+/* 반응형 디자인 (숏폼 전용) */
+@media (max-width: 768px) {
+    .cuts-grid.two-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .script-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .script-actions button {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .product-code-input {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .product-code-input button {
+        width: 100%;
+    }
+    
+    .cut-container {
+        padding: 12px;
+    }
+    
+    .cut-image-preview {
+        min-height: 100px;
+    }
+    
+    .cut-image-preview img {
+        max-width: 120px;
+        max-height: 120px;
+    }
+}
+
+/* 이미지 모달 (숏폼 전용) */
+.image-modal {
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    text-align: center;
+}
+
+.image-modal img {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-xl);
+}
+
+.image-modal-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3001;
+    transition: var(--transition-normal);
+}
+
+.image-modal-nav:hover {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.image-modal-nav.prev {
+    left: -60px;
+}
+
+.image-modal-nav.next {
+    right: -60px;
+}
+
+.image-modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-modal-close:hover {
+    background: white;
+}
+
+.image-modal-indicator {
+    margin-top: var(--spacing-md);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.image-modal-actions {
+    margin-top: var(--spacing-md);
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+}
+
+.image-modal-actions button {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition-normal);
+}
+
+.image-modal-actions button:hover {
+    background: white;
+    transform: translateY(-2px);
+}
+
+/* Cut별 버튼 그룹 */
+.cut-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.cut-buttons button {
+    flex: 1;
+    min-width: 80px;
+    padding: 6px 8px;
+    font-size: 11px;
+    margin: 0;
+}
+
+/* 이미지 생성 진행 상태 */
+.generation-progress {
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    color: #1976d2;
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    margin-top: var(--spacing-sm);
+    font-size: 12px;
+    text-align: center;
+}
+
+/* 반응형 디자인 (숏폼 전용) */
+@media (max-width: 768px) {
+    .cuts-grid.two-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .script-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .script-actions button {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .product-code-input {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .product-code-input button {
+        width: 100%;
+    }
+    
+    .cut-container {
+        padding: 12px;
+    }
+    
+    .cut-image-preview {
+        min-height: 100px;
+    }
+    
+    .cut-image-preview img {
+        max-width: 120px;
+        max-height: 120px;
+    }
+    
+    .image-modal-nav.prev {
+        left: 10px;
+    }
+    
+    .image-modal-nav.next {
+        right: 10px;
+    }
+    
+    .image-modal-close {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .cut-buttons {
+        flex-direction: column;
+    }
+    
+    .cut-buttons button {
+        width: 100%;
+        min-width: auto;
+    }
+}

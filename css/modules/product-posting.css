@@ -1,0 +1,288 @@
+/* ==========================================================================
+   포스팅 기능 전용 스타일
+   product-posting.js 모듈에 대응
+   ========================================================================== */
+
+/* 포스팅 탭 스타일 */
+.tabs {
+    display: flex;
+    margin-bottom: var(--spacing-lg);
+    background: #f8f9fa;
+    border-radius: var(--border-radius-md);
+    padding: 4px;
+    border: var(--border-light);
+}
+
+.tab {
+    flex: 1;
+    padding: 12px var(--spacing-lg);
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    font-size: 14px;
+}
+
+.tab:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--primary-color);
+}
+
+.tab.active {
+    background: white;
+    color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 포스팅 폼 컨테이너 */
+.posting-form {
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* 반응형 스타일 (포스팅 전용) */
+@media (max-width: 768px) {
+    .file-upload-area {
+        padding: var(--spacing-md);
+    }
+    
+    .file-upload-area button {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .file-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+    
+    .file-item span {
+        text-align: center;
+    }
+    
+    .remove-file {
+        width: 100%;
+    }
+    
+    .posting-submit-btn {
+        width: 100%;
+        margin-right: 0;
+    }
+    
+    .tabs {
+        flex-direction: column;
+    }
+    
+    .tab {
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 2px;
+    }
+}
+
+/* 전체 초기화 버튼 */
+.clear-all {
+    background: var(--error-color);
+    margin-bottom: var(--spacing-lg);
+    float: none;
+    display: block;
+}
+
+.clear-all:hover:not(:disabled) {
+    background: #c82333;
+}
+
+/* 파일 업로드 영역 */
+.file-upload-area {
+    border: 2px dashed var(--primary-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    text-align: center;
+    background: rgba(102, 126, 234, 0.05);
+    transition: var(--transition-normal);
+}
+
+.file-upload-area:hover {
+    border-color: #5a6fd8;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.file-upload-area button {
+    background: var(--primary-color);
+    margin-bottom: var(--spacing-sm);
+    margin-right: 0;
+}
+
+.file-upload-area p {
+    color: #666;
+    font-size: 13px;
+    margin: 0;
+}
+
+/* 파일 리스트 */
+.file-list {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: white;
+    border-radius: var(--border-radius-md);
+    border: var(--border-light);
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-item span {
+    color: #333;
+    font-size: 14px;
+}
+
+.remove-file {
+    background: var(--error-color);
+    padding: 6px 12px;
+    font-size: 12px;
+    margin: 0;
+}
+
+.remove-file:hover:not(:disabled) {
+    background: #c82333;
+}
+
+/* 로그 영역 */
+#result {
+    max-height: 400px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    border: var(--border-light);
+}
+
+.log-entry {
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.log-entry.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.log-entry.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.log-entry.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.log-timestamp {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* 포스팅 폼 특별 스타일 */
+.posting-form .form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.posting-form textarea {
+    resize: vertical;
+    font-family: inherit;
+}
+
+.posting-form input[type="text"] {
+    font-size: 14px;
+}
+
+/* 포스팅 버튼 스타일 */
+.posting-submit-btn {
+    background: linear-gradient(45deg, var(--success-color), #20c997);
+    font-size: 18px;
+    padding: var(--spacing-md) var(--spacing-xl);
+    margin-top: var(--spacing-lg);
+}
+
+.posting-submit-btn:hover:not(:disabled) {
+    background: linear-gradient(45deg, #218838, #1e7e34);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* 웹훅 모달 (포스팅 전용) */
+#postingWebhookModal .modal-content {
+    max-width: 650px;
+}
+
+#postingWebhookModal .form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+#postingWebhookModal label {
+    font-size: 16px;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+/* 반응형 스타일 (포스팅 전용) */
+@media (max-width: 768px) {
+    .file-upload-area {
+        padding: var(--spacing-md);
+    }
+    
+    .file-upload-area button {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .file-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+    
+    .file-item span {
+        text-align: center;
+    }
+    
+    .remove-file {
+        width: 100%;
+    }
+    
+    .posting-submit-btn {
+        width: 100%;
+        margin-right: 0;
+    }
+}
