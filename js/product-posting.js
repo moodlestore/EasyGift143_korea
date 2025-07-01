@@ -21,9 +21,15 @@ window.ProductPosting = {
                     <input type="text" id="productName" placeholder="예: 애플 에어팟 프로 3세대">
                 </div>
 
-                <div class="form-group">
-                    <label for="productPrice">제품가격</label>
-                    <input type="text" id="productPrice" placeholder="예: 359,000원">
+                <div class="price-input-group">
+                    <div class="form-group">
+                        <label for="productPrice">제품가격</label>
+                        <input type="text" id="productPrice" placeholder="예: 359,000원">
+                    </div>
+                    <div class="form-group">
+                        <label for="discountPrice">할인가격</label>
+                        <input type="text" id="discountPrice" placeholder="예: 299,000원">
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -323,6 +329,7 @@ closeWebhookModal: function() {
     clearAllFields: function() {
         document.getElementById('productName').value = '';
         document.getElementById('productPrice').value = '';
+        document.getElementById('discountPrice').value = '';
         document.getElementById('productInfo').value = '';
         document.getElementById('customerReview').value = '';
         document.getElementById('affiliateLink').value = '';
@@ -337,6 +344,7 @@ closeWebhookModal: function() {
     buildMessageContent: function() {
         const productName = document.getElementById('productName').value.trim();
         const productPrice = document.getElementById('productPrice').value.trim();
+        const discountPrice = document.getElementById('discountPrice').value.trim();
         const productInfo = document.getElementById('productInfo').value.trim();
         const customerReview = document.getElementById('customerReview').value.trim();
         const affiliateLink = document.getElementById('affiliateLink').value.trim();
@@ -345,6 +353,7 @@ closeWebhookModal: function() {
         let content = '';
         content += `[제품명]${productName}\n`;
         content += `[제품가격]${productPrice}\n`;
+        content += `[할인가격]${discountPrice}\n`;
         content += `[제품정보]${productInfo}\n`;
         content += `[고객리뷰]${customerReview}\n`;
         content += `[구매링크]${affiliateLink}\n`;
@@ -356,7 +365,7 @@ closeWebhookModal: function() {
     // 필드 비활성화/활성화
     toggleFormFields: function(disabled) {
         const fields = [
-            'productName', 'productPrice', 'productInfo', 
+            'productName', 'productPrice', 'discountPrice', 'productInfo', 
             'customerReview', 'affiliateLink', 'affiliateNotice'
         ];
         
