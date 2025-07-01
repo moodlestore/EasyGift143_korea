@@ -286,3 +286,27 @@
         margin-right: 0;
     }
 }
+
+/* 2컬럼 가격 입력 그룹 */
+.price-input-group {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.price-input-group .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* 모바일에서는 세로 배치 */
+@media (max-width: 768px) {
+    .price-input-group {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .price-input-group .form-group {
+        margin-bottom: 15px;
+    }
+}
