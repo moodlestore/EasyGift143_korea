@@ -1,18 +1,27 @@
-// 포스팅 기능 모듈 (내부 탭 제거 버전)
+// 포스팅 기능 모듈 (엑셀 전송 기능 추가)
 window.ProductPosting = {
     // 상태 변수
     postFiles: [],
     infoFiles: [],
     isTransferInProgress: false,
     
-    // HTML 반환 (탭 제거, 메인 기능만)
+    // 엑셀 전송 관련 상태
+    excelData: [],
+    excelImages: [],
+    isExcelTransferInProgress: false,
+    currentExcelIndex: 0,
+    
+    // HTML 반환 (엑셀 전송 버튼 추가)
     getHTML: function() {
         return `
             <!-- 데이터 입력 -->
             <div class="section">
                 <h2>📝 데이터 입력</h2>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <button class="clear-all" onclick="ProductPosting.clearAll()" style="margin-bottom: 0;">🗑️ 전체 초기화</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="clear-all" onclick="ProductPosting.clearAll()" style="margin-bottom: 0;">🗑️ 전체 초기화</button>
+                        <button onclick="ProductPosting.openExcelModal()" style="background: #17a2b8; margin-bottom: 0;">📊 엑셀 전송</button>
+                    </div>
                     <button onclick="ProductPosting.openWebhookModal()" style="background: #6c757d; margin-bottom: 0;">⚙️ 설정</button>
                 </div>
                 
@@ -109,6 +118,87 @@ window.ProductPosting = {
                     </div>
                 </div>
             </div>
+
+            <!-- 엑셀 전송 모달 -->
+            <div id="excelUploadModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 700px;">
+                    <span class="close" onclick="ProductPosting.closeExcelModal()">&times;</span>
+                    <h2>📊 엑셀 파일 일괄 등록</h2>
+                    
+                    <div class="form-group">
+                        <label>1️⃣ 엑셀 파일 업로드</label>
+                        <div class="file-upload-area">
+                            <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display: none;">
+                            <button onclick="document.getElementById('excelFileInput').click()">📁 엑셀 파일 선택</button>
+                            <p>쿠팡 확장프로그램에서 다운로드한 엑셀 파일을 선택하세요</p>
+                        </div>
+                        <div id="excelFileInfo" style="display: none; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-top: 10px;">
+                            <div id="excelFileName"></div>
+                            <div id="excelFileDetails"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>2️⃣ 제품 이미지들 업로드</label>
+                        <div class="file-upload-area">
+                            <input type="file" id="excelImagesInput" multiple accept="image/*" style="display: none;">
+                            <button onclick="document.getElementById('excelImagesInput').click()">🖼️ 이미지 파일들 선택</button>
+                            <p>post_1.jpg, post_2.jpg 순서로 정렬된 이미지들을 선택하세요</p>
+                        </div>
+                        <div id="excelImagesInfo" style="display: none; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-top: 10px;">
+                            <div id="excelImagesCount"></div>
+                            <div id="excelImagesList"></div>
+                        </div>
+                    </div>
+
+                    <div id="excelPreview" style="display: none;">
+                        <h3>📋 매칭 미리보기:</h3>
+                        <div id="excelMatchingPreview" style="max-height: 200px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; background: #f8f9fa;">
+                        </div>
+                    </div>
+
+                    <div id="excelWarning" style="display: none; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; margin: 15px 0;">
+                        <strong>⚠️ 주의사항:</strong>
+                        <ul style="margin: 10px 0 0 20px;">
+                            <li>엑셀 행 수와 이미지 파일 수가 일치해야 합니다</li>
+                            <li>이미지 파일명은 post_1, post_2... 순서로 정렬됩니다</li>
+                            <li>전송 중에는 브라우저를 닫지 마세요</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button onclick="ProductPosting.closeExcelModal()" class="btn-secondary">취소</button>
+                        <button id="excelSendButton" onclick="ProductPosting.startExcelTransfer()" class="btn-success" disabled>🚀 일괄 전송 시작</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 엑셀 전송 진행 모달 -->
+            <div id="excelProgressModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 600px;">
+                    <span class="close" onclick="ProductPosting.closeExcelProgressModal()">&times;</span>
+                    <h2>📊 일괄 전송 진행 중...</h2>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span>전체 진행률:</span>
+                            <span id="excelProgressText">0/0 완료 (0%)</span>
+                        </div>
+                        <div style="width: 100%; background: #e9ecef; border-radius: 10px; height: 20px;">
+                            <div id="excelProgressBar" style="width: 0%; background: linear-gradient(45deg, #28a745, #20c997); height: 100%; border-radius: 10px; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+
+                    <h3>📋 전송 로그:</h3>
+                    <div id="excelTransferLog" style="max-height: 300px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; background: #f8f9fa;">
+                    </div>
+                    
+                    <div class="modal-actions" style="margin-top: 20px;">
+                        <button id="excelStopButton" onclick="ProductPosting.stopExcelTransfer()" class="btn-danger">중단</button>
+                        <button onclick="ProductPosting.closeExcelProgressModal()" class="btn-secondary" disabled id="excelCloseButton">닫기</button>
+                    </div>
+                </div>
+            </div>
         `;
     },
     
@@ -116,19 +206,418 @@ window.ProductPosting = {
     initialize: function() {
         this.loadSavedUrls();
         this.setupFileHandlers();
+        this.setupExcelHandlers();
+    },
+
+    // 엑셀 파일 핸들러 설정
+    setupExcelHandlers: function() {
+        const excelFileInput = document.getElementById('excelFileInput');
+        const excelImagesInput = document.getElementById('excelImagesInput');
+
+        if (excelFileInput) {
+            excelFileInput.addEventListener('change', (e) => {
+                this.handleExcelFile(e.target.files[0]);
+            });
+        }
+
+        if (excelImagesInput) {
+            excelImagesInput.addEventListener('change', (e) => {
+                this.handleExcelImages(e.target.files);
+            });
+        }
+    },
+
+    // 엑셀 모달 열기
+    openExcelModal: function() {
+        const modal = document.getElementById('excelUploadModal');
+        modal.style.display = 'flex';
+        this.resetExcelModal();
+    },
+
+    // 엑셀 모달 닫기
+    closeExcelModal: function() {
+        document.getElementById('excelUploadModal').style.display = 'none';
+        this.resetExcelModal();
+    },
+
+    // 엑셀 진행 모달 닫기
+    closeExcelProgressModal: function() {
+        if (!this.isExcelTransferInProgress) {
+            document.getElementById('excelProgressModal').style.display = 'none';
+        }
+    },
+
+    // 엑셀 모달 리셋
+    resetExcelModal: function() {
+        this.excelData = [];
+        this.excelImages = [];
+        document.getElementById('excelFileInput').value = '';
+        document.getElementById('excelImagesInput').value = '';
+        document.getElementById('excelFileInfo').style.display = 'none';
+        document.getElementById('excelImagesInfo').style.display = 'none';
+        document.getElementById('excelPreview').style.display = 'none';
+        document.getElementById('excelWarning').style.display = 'none';
+        document.getElementById('excelSendButton').disabled = true;
+    },
+
+    // 엑셀 파일 처리
+    handleExcelFile: function(file) {
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                // SheetJS를 사용하여 엑셀 파일 파싱
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                this.excelData = jsonData;
+                
+                // 파일 정보 표시
+                document.getElementById('excelFileName').textContent = `📁 ${file.name}`;
+                document.getElementById('excelFileDetails').textContent = `파일크기: ${Utils.formatFileSize(file.size)}, 행 수: ${jsonData.length}개`;
+                document.getElementById('excelFileInfo').style.display = 'block';
+
+                this.updateExcelPreview();
+                
+            } catch (error) {
+                console.error('엑셀 파일 처리 오류:', error);
+                alert('엑셀 파일을 읽는 중 오류가 발생했습니다: ' + error.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    },
+
+    // 엑셀 이미지 처리
+    handleExcelImages: function(files) {
+        if (!files || files.length === 0) return;
+
+        this.excelImages = Array.from(files).sort((a, b) => a.name.localeCompare(b.name));
+        
+        // 각 이미지를 Base64로 변환
+        let loadedCount = 0;
+        this.excelImages.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                file.base64Data = e.target.result;
+                loadedCount++;
+                
+                if (loadedCount === this.excelImages.length) {
+                    this.updateExcelImagesInfo();
+                    this.updateExcelPreview();
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 즉시 파일 정보 표시
+        document.getElementById('excelImagesCount').textContent = `🖼️ ${files.length}개 파일 선택됨 (총 ${Array.from(files).reduce((sum, f) => sum + f.size, 0) / 1024 / 1024 > 1 ? (Array.from(files).reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(1) + 'MB' : (Array.from(files).reduce((sum, f) => sum + f.size, 0) / 1024).toFixed(1) + 'KB'})`;
+        document.getElementById('excelImagesList').textContent = Array.from(files).map(f => f.name).join(', ');
+        document.getElementById('excelImagesInfo').style.display = 'block';
+    },
+
+    // 엑셀 이미지 정보 업데이트
+    updateExcelImagesInfo: function() {
+        const fileNames = this.excelImages.map(f => f.name).join(', ');
+        const totalSize = this.excelImages.reduce((sum, f) => sum + f.size, 0);
+        
+        document.getElementById('excelImagesCount').textContent = `🖼️ ${this.excelImages.length}개 파일 (총 ${Utils.formatFileSize(totalSize)})`;
+        document.getElementById('excelImagesList').textContent = fileNames;
+    },
+
+    // 엑셀 미리보기 업데이트
+    updateExcelPreview: function() {
+        if (this.excelData.length === 0) return;
+
+        const previewDiv = document.getElementById('excelMatchingPreview');
+        const warningDiv = document.getElementById('excelWarning');
+        const sendButton = document.getElementById('excelSendButton');
+
+        let previewHTML = '';
+        const dataCount = this.excelData.length;
+        const imageCount = this.excelImages.length;
+
+        // 매칭 상태 표시
+        for (let i = 0; i < Math.max(dataCount, imageCount); i++) {
+            const hasData = i < dataCount;
+            const hasImage = i < imageCount;
+            const productName = hasData ? (this.excelData[i].productName || this.excelData[i]['제품명'] || `제품 ${i + 1}`) : '데이터 없음';
+            const imageName = hasImage ? this.excelImages[i].name : '이미지 없음';
+            
+            const statusIcon = hasData && hasImage ? '✅' : '❌';
+            const statusClass = hasData && hasImage ? 'color: #28a745' : 'color: #dc3545';
+            
+            previewHTML += `<div style="${statusClass}; margin-bottom: 8px;">${statusIcon} 행 ${i + 1}: "${productName}" → ${imageName}</div>`;
+        }
+
+        previewDiv.innerHTML = previewHTML;
+        document.getElementById('excelPreview').style.display = 'block';
+
+        // 경고 표시 및 전송 버튼 활성화
+        if (dataCount !== imageCount || dataCount === 0) {
+            warningDiv.style.display = 'block';
+            sendButton.disabled = true;
+        } else {
+            warningDiv.style.display = 'none';
+            sendButton.disabled = false;
+        }
+    },
+
+    // 엑셀 일괄 전송 시작
+    startExcelTransfer: function() {
+        if (this.isExcelTransferInProgress) {
+            alert('이미 전송이 진행 중입니다.');
+            return;
+        }
+
+        const url1 = document.getElementById('webhookUrl1').value.trim();
+        const url2 = document.getElementById('webhookUrl2').value.trim();
+        
+        if (!url1 || !url2) {
+            alert('웹훅 URL을 먼저 설정해주세요.');
+            return;
+        }
+
+        if (this.excelData.length === 0 || this.excelImages.length === 0) {
+            alert('엑셀 파일과 이미지를 모두 선택해주세요.');
+            return;
+        }
+
+        if (this.excelData.length !== this.excelImages.length) {
+            alert('엑셀 행 수와 이미지 파일 수가 일치하지 않습니다.');
+            return;
+        }
+
+        // 진행 모달 열기
+        document.getElementById('excelUploadModal').style.display = 'none';
+        document.getElementById('excelProgressModal').style.display = 'flex';
+
+        // 전송 시작
+        this.isExcelTransferInProgress = true;
+        this.currentExcelIndex = 0;
+        document.getElementById('excelStopButton').disabled = false;
+        document.getElementById('excelCloseButton').disabled = true;
+
+        this.updateExcelProgress();
+        this.processNextExcelItem();
+    },
+
+    // 다음 엑셀 아이템 처리
+    processNextExcelItem: function() {
+        if (!this.isExcelTransferInProgress || this.currentExcelIndex >= this.excelData.length) {
+            this.finishExcelTransfer();
+            return;
+        }
+
+        const currentData = this.excelData[this.currentExcelIndex];
+        const currentImage = this.excelImages[this.currentExcelIndex];
+        const itemNumber = this.currentExcelIndex + 1;
+
+        // 로그 추가
+        this.addExcelLog(`[${new Date().toLocaleTimeString()}] 🔄 제품 ${itemNumber}: ${currentData.productName || currentData['제품명'] || '제품명 없음'} 전송 시작`, 'info');
+
+        // 데이터 구성 (기존 포스팅 형식과 동일)
+        const content = this.buildExcelMessageContent(currentData);
+        
+        const discordMessage = {
+            content: content,
+            author: {
+                id: "123456789",
+                username: "testuser", 
+                discriminator: "0001"
+            },
+            timestamp: new Date().toISOString(),
+            attachments: [{
+                id: `img000`,
+                filename: currentImage.name,
+                size: currentImage.size,
+                url: null,
+                content_type: currentImage.type || 'image/jpeg',
+                base64: currentImage.base64Data ? currentImage.base64Data.split(',')[1] : null,
+                is_local_file: true
+            }]
+        };
+
+        // 웹훅 1 전송
+        this.sendExcelWebhook1(discordMessage, itemNumber);
+    },
+
+    // 엑셀 데이터를 메시지 형식으로 변환
+    buildExcelMessageContent: function(data) {
+        let content = '';
+        content += `[제품명]${data.productName || data['제품명'] || ''}\n`;
+        content += `[제품가격]${data.originalPrice || data['정가'] || data.productPrice || data['제품가격'] || ''}\n`;
+        content += `[할인가격]${data.salePrice || data['할인가'] || data.discountPrice || data['할인가격'] || ''}\n`;
+        content += `[제품정보]${data.productInfo || data['제품정보'] || data.productDescription || data['제품설명'] || ''}\n`;
+        content += `[고객리뷰]${data.customerReviews || data['고객리뷰'] || data.reviews || data['리뷰'] || '리뷰 정보 없음'}\n`;
+        content += `[구매링크]${data.buyLink || data['구매링크'] || data.affiliateLink || data['어필리에이트링크'] || ''}\n`;
+        content += `[대가성문구]이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.\n`;
+        
+        return content.trim();
+    },
+
+    // 엑셀 웹훅 1 전송
+    sendExcelWebhook1: function(message, itemNumber) {
+        const url = document.getElementById('webhookUrl1').value.trim();
+        const startTime = Date.now();
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(message)
+        })
+        .then(response => {
+            const duration = Date.now() - startTime;
+            return response.text().then(text => {
+                let responseData = null;
+                
+                try {
+                    responseData = JSON.parse(text);
+                } catch (e) {
+                    if (text.includes('success') || text.includes('"status":"success"')) {
+                        const productIdMatch = text.match(/"Product_ID":\s*"?([^",}]+)"?/);
+                        responseData = { 
+                            status: 'success', 
+                            Product_ID: productIdMatch ? productIdMatch[1].trim() : null
+                        };
+                    }
+                }
+                
+                if (responseData && responseData.status === 'success') {
+                    this.addExcelLog(`    웹훅 1 성공 (${duration}ms)`, 'success');
+                    
+                    // 3초 후 웹훅 2 전송
+                    setTimeout(() => {
+                        this.sendExcelWebhook2(responseData.Product_ID, itemNumber);
+                    }, 3000);
+                } else {
+                    this.addExcelLog(`    웹훅 1 실패: ${response.status} ${response.statusText}`, 'error');
+                    this.currentExcelIndex++;
+                    this.updateExcelProgress();
+                    setTimeout(() => this.processNextExcelItem(), 1000);
+                }
+            });
+        })
+        .catch(error => {
+            const duration = Date.now() - startTime;
+            this.addExcelLog(`    웹훅 1 오류: ${error.message} (${duration}ms)`, 'error');
+            this.currentExcelIndex++;
+            this.updateExcelProgress();
+            setTimeout(() => this.processNextExcelItem(), 1000);
+        });
+    },
+
+    // 엑셀 웹훅 2 전송
+    sendExcelWebhook2: function(productId, itemNumber) {
+        const url = document.getElementById('webhookUrl2').value.trim();
+        const startTime = Date.now();
+
+        const simpleMessage = {
+            content: `[Product_ID]${productId || ''}`,
+            author: {
+                id: "123456789",
+                username: "testuser", 
+                discriminator: "0001"
+            },
+            timestamp: new Date().toISOString(),
+            attachments: []
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(simpleMessage)
+        })
+        .then(response => {
+            const duration = Date.now() - startTime;
+            return response.text().then(text => {
+                if (response.ok) {
+                    this.addExcelLog(`    웹훅 2 성공 (${duration}ms)`, 'success');
+                    this.addExcelLog(`✅ 제품 ${itemNumber} 전송 완료\n`, 'success');
+                } else {
+                    this.addExcelLog(`    웹훅 2 실패: ${response.status} ${response.statusText}`, 'error');
+                }
+                
+                this.currentExcelIndex++;
+                this.updateExcelProgress();
+                setTimeout(() => this.processNextExcelItem(), 1000);
+            });
+        })
+        .catch(error => {
+            const duration = Date.now() - startTime;
+            this.addExcelLog(`    웹훅 2 오류: ${error.message} (${duration}ms)`, 'error');
+            this.currentExcelIndex++;
+            this.updateExcelProgress();
+            setTimeout(() => this.processNextExcelItem(), 1000);
+        });
+    },
+
+    // 엑셀 진행률 업데이트
+    updateExcelProgress: function() {
+        const total = this.excelData.length;
+        const completed = this.currentExcelIndex;
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        document.getElementById('excelProgressText').textContent = `${completed}/${total} 완료 (${percentage}%)`;
+        document.getElementById('excelProgressBar').style.width = `${percentage}%`;
+    },
+
+    // 엑셀 전송 완료
+    finishExcelTransfer: function() {
+        this.isExcelTransferInProgress = false;
+        this.addExcelLog(`\n🎉 전체 ${this.excelData.length}개 제품 전송 완료!`, 'success');
+        
+        document.getElementById('excelStopButton').disabled = true;
+        document.getElementById('excelCloseButton').disabled = false;
+        
+        Utils.showAchievement(`엑셀 일괄 전송이 완료되었습니다! (${this.excelData.length}개 제품)`);
+    },
+
+    // 엑셀 전송 중단
+    stopExcelTransfer: function() {
+        if (confirm('전송을 중단하시겠습니까?')) {
+            this.isExcelTransferInProgress = false;
+            this.addExcelLog(`\n⏹️ 사용자가 전송을 중단했습니다. (${this.currentExcelIndex}/${this.excelData.length} 완료)`, 'info');
+            
+            document.getElementById('excelStopButton').disabled = true;
+            document.getElementById('excelCloseButton').disabled = false;
+        }
+    },
+
+    // 엑셀 로그 추가
+    addExcelLog: function(message, type = 'info') {
+        const logDiv = document.getElementById('excelTransferLog');
+        const logEntry = document.createElement('div');
+        
+        const typeColors = {
+            success: '#28a745',
+            error: '#dc3545',
+            info: '#17a2b8'
+        };
+        
+        logEntry.style.color = typeColors[type] || '#333';
+        logEntry.style.marginBottom = '5px';
+        logEntry.style.fontSize = '14px';
+        logEntry.textContent = message;
+        
+        logDiv.appendChild(logEntry);
+        logDiv.scrollTop = logDiv.scrollHeight;
     },
 
     // 웹훅 모달 열기
-openWebhookModal: function() {
-    const modal = document.getElementById('postingWebhookModal');
-    modal.style.display = 'flex';  // 'block' 대신 'flex' 사용
-    this.loadSavedUrls();
-},
+    openWebhookModal: function() {
+        const modal = document.getElementById('postingWebhookModal');
+        modal.style.display = 'flex';
+        this.loadSavedUrls();
+    },
 
-// 웹훅 모달 닫기
-closeWebhookModal: function() {
-    document.getElementById('postingWebhookModal').style.display = 'none';
-},
+    // 웹훅 모달 닫기
+    closeWebhookModal: function() {
+        document.getElementById('postingWebhookModal').style.display = 'none';
+    },
     
     // 저장된 URL 로드
     loadSavedUrls: function() {
